@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+  }
+  ::selection {
+    @apply bg-magenta/20;
+  }
+  :focus-visible {
+    outline: 2px solid #C81E6E;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-vibe-gradient
+      px-6 py-3 text-sm font-semibold text-white shadow-glow transition-transform
+      duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:hover:scale-100;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15
+      bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors duration-200
+      hover:border-ink/30 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .card {
+    @apply rounded-xl2 border border-ink/8 bg-white shadow-card;
+  }
+  .input {
+    @apply w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink
+      placeholder:text-ink/40 focus:border-magenta focus:ring-2 focus:ring-magenta/20 outline-none transition;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/70;
+  }
+  .pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

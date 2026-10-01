@@ -1,0 +1,18 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vc-swoosh" x1="10" y1="52" x2="54" y2="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stopColor="#C81E6E" />
+      <stop offset="1" stopColor="#F5811F" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M8 20c6 0 10 4 12 10l6 16 6-20c2-7 7-11 13-11-4 8-6 12-8 20-3 11-9 19-17 19S6 45 4 34c-1-6 0-10 4-14Z"
+    fill="#0F2A3D"
+  />
+  <path
+    d="M18 24c4 0 7 3 9 9l5 15 6-19c2-6 6-9 11-9-3 6-5 10-7 17-3 10-8 17-15 17s-13-7-15-16c-1-5 0-9 6-14Z"
+    fill="url(#vc-swoosh)"
+  />
+  <circle cx="46" cy="14" r="2" fill="#F5811F" />
+  <circle cx="52" cy="20" r="1.4" fill="#F5811F" />
+</svg>

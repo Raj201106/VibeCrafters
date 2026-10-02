@@ -1,4 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { X, Ticket, LayoutDashboard, User as UserIcon, LogOut } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function MobileMenu({ open, onClose, user, onLogout }) {
 
   const dashboardPath = user ? dashboardPathFor(user.role) : null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -38,14 +39,14 @@ export default function MobileMenu({ open, onClose, user, onLogout }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-[100] bg-ink/40 backdrop-blur-sm md:hidden"
           />
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-            className="fixed right-0 top-0 z-50 h-full w-[80%] max-w-sm overflow-y-auto bg-cream p-6 shadow-glow md:hidden"
+            className="fixed right-0 top-0 z-[101] h-[100dvh] w-full max-w-sm overflow-y-auto bg-cream p-6 shadow-glow md:hidden"
           >
             <div className="flex items-center justify-between">
               <LanguageSwitcher />
@@ -122,6 +123,7 @@ export default function MobileMenu({ open, onClose, user, onLogout }) {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

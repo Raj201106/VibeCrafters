@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { motion, useScroll, useMotionValueEvent } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LogOut, LayoutDashboard, Ticket, Menu } from 'lucide-react';
+import { LogOut, LayoutDashboard, Ticket, Menu, Moon, Sun } from 'lucide-react';
 import Logo from './Logo';
 import NotificationBell from './NotificationBell';
 import MobileMenu from './MobileMenu';
@@ -22,6 +22,18 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollY } = useScroll();
 
+  const [theme, setTheme] = useState(
+    localStorage.theme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  );
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.theme = newTheme;
+    if (newTheme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  };
+
   useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 8));
 
   // Close the mobile menu automatically whenever the route changes (e.g. after tapping a link)
@@ -38,7 +50,7 @@ export default function Navbar() {
   return (
     <motion.header
       animate={{
-        boxShadow: scrolled ? '0 1px 0 rgba(15,42,61,0.08), 0 8px 24px rgba(15,42,61,0.05)' : '0 0 0 rgba(0,0,0,0)',
+        boxShadow: scrolled ? '0 1px 0 var(--color-border, rgba(15,42,61,0.08)), 0 8px 24px var(--color-border, rgba(15,42,61,0.05))' : '0 0 0 rgba(0,0,0,0)',
       }}
       transition={{ duration: 0.2 }}
       className="sticky top-0 z-30 border-b border-ink/8 bg-cream/90 backdrop-blur"
@@ -81,6 +93,13 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="rounded-full p-2 text-ink/70 transition hover:bg-ink/5 hover:text-ink"
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
           <LanguageSwitcher compact />
           {user ? (
             <>

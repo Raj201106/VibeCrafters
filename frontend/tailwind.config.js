@@ -1,14 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Design tokens lifted directly from the VibeCrafters logo mark
         ink: {
-          DEFAULT: '#0F2A3D', // deep navy — headings, structural chrome
-          soft: '#173B4F',
-          teal: '#1C4A52',
+          DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
+          soft: 'rgb(var(--color-ink-soft) / <alpha-value>)',
+          teal: 'rgb(var(--color-ink-teal) / <alpha-value>)',
         },
         magenta: {
           DEFAULT: '#C81E6E',
@@ -19,9 +19,10 @@ export default {
           light: '#FBAA4C',
         },
         cream: {
-          DEFAULT: '#FBF7EF',
-          dim: '#F3EDE0',
+          DEFAULT: 'rgb(var(--color-cream) / <alpha-value>)',
+          dim: 'rgb(var(--color-cream-dim) / <alpha-value>)',
         },
+        white: 'rgb(var(--color-white) / <alpha-value>)',
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],

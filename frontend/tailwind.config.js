@@ -6,9 +6,9 @@ export default {
     extend: {
       colors: {
         ink: {
-          DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
-          soft: 'rgb(var(--color-ink-soft) / <alpha-value>)',
-          teal: 'rgb(var(--color-ink-teal) / <alpha-value>)',
+          DEFAULT: 'rgba(var(--color-ink), <alpha-value>)',
+          soft: 'rgba(var(--color-ink-soft), <alpha-value>)',
+          teal: 'rgba(var(--color-ink-teal), <alpha-value>)',
         },
         magenta: {
           DEFAULT: '#C81E6E',
@@ -19,10 +19,10 @@ export default {
           light: '#FBAA4C',
         },
         cream: {
-          DEFAULT: 'rgb(var(--color-cream) / <alpha-value>)',
-          dim: 'rgb(var(--color-cream-dim) / <alpha-value>)',
+          DEFAULT: 'rgba(var(--color-cream), <alpha-value>)',
+          dim: 'rgba(var(--color-cream-dim), <alpha-value>)',
         },
-        white: 'rgb(var(--color-white) / <alpha-value>)',
+        white: 'rgba(var(--color-white), <alpha-value>)',
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'sans-serif'],

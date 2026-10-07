@@ -25,6 +25,8 @@ export default function AttendeesList() {
   const [chatWith, setChatWith] = useState(null);
   const [ticketToRefund, setTicketToRefund] = useState(null);
   const [refunding, setRefunding] = useState(false);
+  const [ticketToCancel, setTicketToCancel] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const [filter, setFilter] = useState('all');
 
@@ -48,6 +50,21 @@ export default function AttendeesList() {
       toast.error(err.message || 'Refund failed');
     } finally {
       setRefunding(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!ticketToCancel) return;
+    setCancelling(true);
+    try {
+      await api.post(`/tickets/${ticketToCancel}/cancel`);
+      toast.success('Ticket cancelled successfully!');
+      setTicketToCancel(null);
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Cancellation failed');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -153,22 +170,32 @@ export default function AttendeesList() {
                     <span className={`pill capitalize ${statusPill[a.status] || 'bg-ink/10 text-ink/60'}`}>{t(`ticketStatus.${a.status}`)}</span>
                   </td>
                   <td className="px-5 py-3 text-right">
-                    {a.status !== 'cancelled' && a.status !== 'refunded' && a.user?._id && (
-                      <button
-                        onClick={() => setChatWith({ id: a.user._id, name: a.user.name })}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-magenta hover:underline"
-                      >
-                        <MessageCircle size={13} /> {t('attendeesList.message')}
-                      </button>
-                    )}
-                    {a.status === 'cancelled' && (
-                      <button
-                        onClick={() => setTicketToRefund(a._id)}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 hover:underline"
-                      >
-                        Refund
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-3">
+                      {a.status !== 'cancelled' && a.status !== 'refunded' && a.user?._id && (
+                        <button
+                          onClick={() => setChatWith({ id: a.user._id, name: a.user.name })}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-magenta hover:underline"
+                        >
+                          <MessageCircle size={13} /> {t('attendeesList.message')}
+                        </button>
+                      )}
+                      {a.status === 'booked' && (
+                        <button
+                          onClick={() => setTicketToCancel(a._id)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 hover:text-red-600 hover:underline"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      {a.status === 'cancelled' && (
+                        <button
+                          onClick={() => setTicketToRefund(a._id)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 hover:underline"
+                        >
+                          Refund
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -179,6 +206,29 @@ export default function AttendeesList() {
 
       {chatWith && (
         <ChatWidget key={chatWith.id} eventId={eventId} otherUser={chatWith} eventTitle={event.title} />
+      )}
+
+      {ticketToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-6 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-sm rounded-xl2 bg-white p-6 text-center shadow-glow"
+          >
+            <h3 className="font-display text-xl font-semibold text-ink">Cancel Ticket?</h3>
+            <p className="mt-2 text-sm text-ink/70">
+              This will cancel the ticket and release the seat. Revenue will be deducted from your dashboard immediately.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <button onClick={() => setTicketToCancel(null)} disabled={cancelling} className="btn-secondary flex-1">
+                Keep Ticket
+              </button>
+              <button onClick={handleCancel} disabled={cancelling} className="btn-primary flex-1 !bg-red-600 !text-white hover:!bg-red-700 border-0">
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
 
       {ticketToRefund && (

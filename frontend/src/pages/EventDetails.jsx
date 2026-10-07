@@ -27,6 +27,12 @@ export default function EventDetails() {
   const [busy, setBusy] = useState(false);
   const [showAdded, setShowAdded] = useState(false);
 
+  useEffect(() => {
+    if (selected && qty > selected.available) {
+      setQty(Math.max(1, selected.available));
+    }
+  }, [selected, qty]);
+
   // Scroll-linked parallax: the banner drifts down and scales up slightly as the page
   // scrolls past it, giving the flat hero image a sense of depth without any WebGL.
   const bannerRef = useRef(null);
@@ -218,7 +224,7 @@ export default function EventDetails() {
               </motion.span>
               <motion.button
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setQty((q) => Math.min(10, q + 1))}
+                onClick={() => setQty((q) => Math.min(10, selected?.available || 1, q + 1))}
                 className="rounded-full border border-ink/15 p-1.5 hover:bg-ink/5"
               >
                 <Plus size={14} />
@@ -235,9 +241,9 @@ export default function EventDetails() {
 
           <motion.button
             onClick={bookNow}
-            disabled={busy || !selected}
-            whileHover={{ scale: busy || !selected ? 1 : 1.02 }}
-            whileTap={{ scale: busy || !selected ? 1 : 0.98 }}
+            disabled={busy || !selected || selected.available === 0}
+            whileHover={{ scale: busy || !selected || selected.available === 0 ? 1 : 1.02 }}
+            whileTap={{ scale: busy || !selected || selected.available === 0 ? 1 : 0.98 }}
             className="btn-primary mt-5 w-full hover:!scale-100 active:!scale-100"
           >
             {busy ? t('eventDetails.booking') : t('eventDetails.bookNow', { count: qty })}

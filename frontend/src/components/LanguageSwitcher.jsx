@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe, Check } from 'lucide-react';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 
-export default function LanguageSwitcher({ compact = false }) {
+export default function LanguageSwitcher({ compact = false, align = 'right' }) {
   const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -32,7 +32,7 @@ export default function LanguageSwitcher({ compact = false }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-2 w-40 overflow-hidden rounded-xl2 border border-ink/8 bg-white py-1 shadow-card">
+        <div className={`absolute top-full z-40 mt-2 w-40 overflow-hidden rounded-xl2 border border-ink/8 bg-white py-1 shadow-card ${align === 'right' ? 'right-0' : 'left-0'}`}>
           {SUPPORTED_LANGUAGES.map((lang) => (
             <button
               key={lang.code}

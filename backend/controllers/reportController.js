@@ -11,18 +11,29 @@ const overview = asyncHandler(async (req, res) => {
   const organizerFilter = req.user.role === 'organizer' ? { organizer: req.user._id } : {};
   const eventIds = (await Event.find(organizerFilter).select('_id')).map((e) => e._id);
 
-  const [totalEvents, published, totalTicketsSold, revenueAgg, checkIns] = await Promise.all([
+  const [totalEvents, published, totalTicketsSold, revenueAgg, refundedAgg, checkIns] = await Promise.all([
     Event.countDocuments(organizerFilter),
     Event.countDocuments({ ...organizerFilter, status: 'published' }),
+    // Exclude cancelled AND refunded tickets from sold count
     Ticket.countDocuments({ event: { $in: eventIds }, status: { $in: ['booked', 'checked-in'] } }),
+    // Sum of all completed payments
     Payment.aggregate([
       { $match: { status: 'paid' } },
       { $lookup: { from: 'tickets', localField: 'tickets', foreignField: '_id', as: 'ticketDocs' } },
       { $match: { 'ticketDocs.event': { $in: eventIds } } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]),
+    // Sum revenue of cancelled/refunded tickets to subtract from total
+    Ticket.aggregate([
+      { $match: { event: { $in: eventIds }, status: { $in: ['cancelled', 'refunded'] }, priceAtPurchase: { $gt: 0 } } },
+      { $group: { _id: null, total: { $sum: '$priceAtPurchase' } } },
+    ]),
     Ticket.countDocuments({ event: { $in: eventIds }, status: 'checked-in' }),
   ]);
+
+  const grossRevenue = revenueAgg[0]?.total || 0;
+  const refundedAmount = refundedAgg[0]?.total || 0;
+  const netRevenue = Math.max(0, grossRevenue - refundedAmount);
 
   res.json({
     success: true,
@@ -30,7 +41,7 @@ const overview = asyncHandler(async (req, res) => {
       totalEvents,
       published,
       totalTicketsSold,
-      totalRevenue: revenueAgg[0]?.total || 0,
+      totalRevenue: netRevenue,
       totalCheckIns: checkIns,
     },
   });
@@ -46,10 +57,13 @@ const salesTrend = asyncHandler(async (req, res) => {
     { $match: { status: 'paid' } },
     { $lookup: { from: 'tickets', localField: 'tickets', foreignField: '_id', as: 'ticketDocs' } },
     { $match: { 'ticketDocs.event': { $in: eventIds } } },
+    // Only count tickets that are still active (not cancelled/refunded)
+    { $addFields: { activeTickets: { $filter: { input: '$ticketDocs', as: 'td', cond: { $not: [{ $in: ['$$td.status', ['cancelled', 'refunded']] }] } } } } },
+    { $match: { $expr: { $gt: [{ $size: '$activeTickets' }, 0] } } },
     {
       $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        revenue: { $sum: '$amount' },
+        revenue: { $sum: { $sum: '$activeTickets.priceAtPurchase' } },
         count: { $sum: 1 },
       },
     },
@@ -77,6 +91,7 @@ const eventReport = asyncHandler(async (req, res) => {
   const eventId = new mongoose.Types.ObjectId(req.params.eventId);
 
   const [sales, attendance, feedback] = await Promise.all([
+    // Only count active (booked/checked-in) tickets for revenue reporting per tier
     Ticket.aggregate([
       { $match: { event: eventId, status: { $in: ['booked', 'checked-in'] } } },
       { $group: { _id: '$ticketType', count: { $sum: 1 }, revenue: { $sum: '$priceAtPurchase' } } },
@@ -84,6 +99,7 @@ const eventReport = asyncHandler(async (req, res) => {
       { $unwind: '$type' },
       { $project: { name: '$type.name', count: 1, revenue: 1 } },
     ]),
+    // Show full breakdown including cancelled/refunded for transparency
     Ticket.aggregate([
       { $match: { event: eventId } },
       { $group: { _id: '$status', count: { $sum: 1 } } },

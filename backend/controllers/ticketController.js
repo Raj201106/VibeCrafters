@@ -6,7 +6,7 @@ const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
 const Payment = require('../models/Payment');
 const { generateTicketQR } = require('../utils/qrGenerator');
-const { sendBookingConfirmationEmail } = require('../utils/email');
+const { sendBookingConfirmationEmail, sendTicketCancelledEmail, sendTicketRefundedEmail } = require('../utils/email');
 const { pushNotification } = require('./notificationController');
 const { sendSMS } = require('../utils/sms');
 const { BRAND, drawBrandHeader } = require('../utils/pdfBrand');
@@ -349,12 +349,18 @@ const checkIn = asyncHandler(async (req, res) => {
 //        corrupting inventory and eventually reporting near-infinite fake availability.
 // @route POST /api/tickets/:id/cancel
 const cancelTicket = asyncHandler(async (req, res) => {
-  const ticket = await Ticket.findById(req.params.id);
+  const ticket = await Ticket.findById(req.params.id).populate('event');
   if (!ticket) {
     res.status(404);
     throw new Error('Ticket not found.');
   }
-  if (String(ticket.user) !== String(req.user._id) && req.user.role !== 'admin') {
+
+  const isOwner = String(ticket.user) === String(req.user._id);
+  const isAdmin = req.user.role === 'admin';
+  const isOrganizer = req.user.role === 'organizer' &&
+    ticket.event && String(ticket.event.organizer) === String(req.user._id);
+
+  if (!isOwner && !isAdmin && !isOrganizer) {
     res.status(403);
     throw new Error('Not authorized.');
   }
@@ -364,13 +370,29 @@ const cancelTicket = asyncHandler(async (req, res) => {
   }
   ticket.status = 'cancelled';
   await ticket.save();
+
+  // Release inventory
   await TicketType.updateOne(
     { _id: ticket.ticketType, quantitySold: { $gte: 1 } },
     { $inc: { quantitySold: -1 } }
   );
 
-  const event = await Event.findById(ticket.event);
+  // Mark the associated payment as refunded so revenue KPIs update immediately
+  if (ticket.priceAtPurchase > 0) {
+    await Payment.updateOne(
+      { tickets: ticket._id, status: 'paid' },
+      { $set: { status: 'refunded' } }
+    );
+  }
+
+  const event = ticket.event || await Event.findById(ticket.event);
   if (event) {
+    const User = require('../models/User');
+    const attendee = await User.findById(ticket.user);
+    if (attendee) {
+      sendTicketCancelledEmail(attendee, event).catch(e => console.error(e));
+    }
+
     pushNotification({
       userId: event.organizer,
       title: 'Ticket Cancelled',
@@ -420,6 +442,12 @@ const refundTicket = asyncHandler(async (req, res) => {
 
   ticket.status = 'refunded';
   await ticket.save();
+
+  const User = require('../models/User');
+  const attendee = await User.findById(ticket.user);
+  if (attendee) {
+    sendTicketRefundedEmail(attendee, ticket.event).catch(e => console.error(e));
+  }
 
   pushNotification({
     userId: ticket.user,

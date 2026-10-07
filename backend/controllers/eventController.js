@@ -246,6 +246,53 @@ const updateStatus = asyncHandler(async (req, res) => {
     }
   }
 
+  if (status === 'cancelled') {
+    const Ticket = require('../models/Ticket');
+    const Payment = require('../models/Payment');
+    const { sendEmail } = require('../utils/email');
+    
+    // Find all active tickets
+    const tickets = await Ticket.find({ event: event._id, status: { $in: ['reserved', 'booked'] } }).populate('user');
+    for (const ticket of tickets) {
+      ticket.status = 'refunded';
+      await ticket.save();
+
+      // Initiate stripe refund if it was paid
+      if (ticket.priceAtPurchase > 0) {
+        const payment = await Payment.findOne({ tickets: ticket._id, status: 'paid' });
+        if (payment && payment.gatewayPaymentId && process.env.STRIPE_SECRET_KEY) {
+          try {
+             const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+             await stripe.refunds.create({
+               payment_intent: payment.gatewayPaymentId,
+               amount: Math.round(ticket.priceAtPurchase * 100),
+             });
+          } catch(e) { console.error('Stripe refund failed', e) }
+        }
+      }
+      
+      // Release inventory
+      await TicketType.updateOne(
+        { _id: ticket.ticketType, quantitySold: { $gte: 1 } },
+        { $inc: { quantitySold: -1 } }
+      );
+      
+      // Send cancellation email
+      if (ticket.user) {
+        const wrap = (title, bodyHtml) => `<div style="background:#FBF7EF;padding:32px 16px;font-family:Arial,sans-serif;"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #0F2A3D14;"><div style="background:linear-gradient(120deg, #C81E6E, #F5811F);padding:22px 28px;"><span style="color:#fff;font-size:20px;font-weight:700;">VibeCrafters</span></div><div style="padding:28px;color:#0F2A3D;"><h1 style="font-size:20px;margin:0 0 12px;color:#0F2A3D;">${title}</h1><div style="font-size:14px;line-height:1.6;color:#334;">${bodyHtml}</div></div></div></div>`;
+        
+        await sendEmail({
+          to: ticket.user.email,
+          subject: `Event Cancelled: ${event.title}`,
+          html: wrap(
+            'Event Cancelled',
+            `Hi ${ticket.user.name.split(' ')[0]},<br/><br/>We regret to inform you that the event <b>${event.title}</b> has been cancelled by the organizer. Your ticket has been automatically refunded to your original payment method. Please allow a few days for the refund to reflect in your account.`
+          )
+        });
+      }
+    }
+  }
+
   event.status = status;
   await event.save();
   res.json({ success: true, event });

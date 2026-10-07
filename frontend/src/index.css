@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --color-ink: 15 42 61; /* #0F2A3D */
-    --color-ink-soft: 23 59 79; /* #173B4F */
-    --color-ink-teal: 28 74 82; /* #1C4A52 */
-    --color-cream: 251 247 239; /* #FBF7EF */
-    --color-cream-dim: 243 237 224; /* #F3EDE0 */
-    --color-white: 255 255 255;
+    --color-ink: 15, 42, 61; /* #0F2A3D */
+    --color-ink-soft: 23, 59, 79; /* #173B4F */
+    --color-ink-teal: 28, 74, 82; /* #1C4A52 */
+    --color-cream: 251, 247, 239; /* #FBF7EF */
+    --color-cream-dim: 243, 237, 224; /* #F3EDE0 */
+    --color-white: 255, 255, 255;
   }
   .dark {
-    --color-ink: 251 247 239; /* Text becomes light */
-    --color-ink-soft: 243 237 224;
-    --color-ink-teal: 243 237 224;
-    --color-cream: 11 30 43; /* Bg becomes dark */
-    --color-cream-dim: 15 42 61;
-    --color-white: 15 42 61; /* Cards become dark blue */
+    --color-ink: 251, 247, 239; /* Text becomes light */
+    --color-ink-soft: 243, 237, 224;
+    --color-ink-teal: 243, 237, 224;
+    --color-cream: 11, 30, 43; /* Bg becomes dark */
+    --color-cream-dim: 15, 42, 61;
+    --color-white: 15, 42, 61; /* Cards become dark blue */
   }
 
   body {

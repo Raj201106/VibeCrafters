@@ -120,6 +120,28 @@ const sendContactAcknowledgement = (submission) =>
     ),
   });
 
+const sendTicketCancelledEmail = (user, event) =>
+  sendEmail({
+    to: user.email,
+    subject: `Ticket Cancelled: ${escapeHtml(event.title)}`,
+    html: wrap(
+      'Ticket Cancelled',
+      `Hi ${escapeHtml(user.name.split(' ')[0])}, you have successfully cancelled your ticket for <b>${escapeHtml(event.title)}</b>.<br/><br/>
+       If your ticket was paid, a refund has been initiated and will reflect in your account within a few business days.`
+    ),
+  });
+
+const sendTicketRefundedEmail = (user, event) =>
+  sendEmail({
+    to: user.email,
+    subject: `Refund Processed: ${escapeHtml(event.title)}`,
+    html: wrap(
+      'Refund Processed',
+      `Hi ${escapeHtml(user.name.split(' ')[0])}, your ticket for <b>${escapeHtml(event.title)}</b> has been refunded by the organizer.<br/><br/>
+       Please allow a few business days for the funds to appear in your account.`
+    ),
+  });
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
@@ -127,4 +149,6 @@ module.exports = {
   sendEventReminderEmail,
   sendPromoEmail,
   sendContactAcknowledgement,
+  sendTicketCancelledEmail,
+  sendTicketRefundedEmail,
 };

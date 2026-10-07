@@ -72,6 +72,17 @@ export default function OrganizerDashboard() {
     }
   };
 
+  const cancelEvent = async (event) => {
+    if (!confirm(`Are you sure you want to CANCEL "${event.title}"? All booked tickets will be refunded automatically.`)) return;
+    try {
+      await api.patch(`/events/${event._id}/status`, { status: 'cancelled' });
+      toast.success('Event cancelled & refunds initiated');
+      load();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   if (!kpis || !events) return <LoadingSpinner full />;
 
   const cards = [
@@ -171,6 +182,11 @@ export default function OrganizerDashboard() {
                         {e.status === 'draft' && (
                           <button onClick={() => removeDraft(e)} className="text-xs font-semibold text-ink/40 hover:text-red-500 hover:underline">
                             {t('organizerDashboard.delete')}
+                          </button>
+                        )}
+                        {e.status === 'published' && (
+                          <button onClick={() => cancelEvent(e)} className="text-xs font-semibold text-ink/40 hover:text-red-500 hover:underline">
+                            Cancel Event
                           </button>
                         )}
                       </div>

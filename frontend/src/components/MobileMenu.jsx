@@ -49,7 +49,7 @@ export default function MobileMenu({ open, onClose, user, onLogout }) {
             className="fixed right-0 top-0 z-[101] h-[100dvh] w-full max-w-sm overflow-y-auto bg-cream p-6 shadow-glow md:hidden"
           >
             <div className="flex items-center justify-between">
-              <LanguageSwitcher />
+              <LanguageSwitcher align="left" />
               <button onClick={onClose} className="rounded-full p-2 text-ink/60 hover:bg-ink/5" aria-label="Close menu">
                 <X size={22} />
               </button>

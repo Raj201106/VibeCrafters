@@ -7,12 +7,12 @@ const startPaymentCron = () => {
   // Run every 5 minutes
   cron.schedule('*/5 * * * *', async () => {
     try {
-      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-      // Find pending payments older than 15 minutes
+      // Find pending payments older than 5 minutes
       const abandonedPayments = await Payment.find({
         status: 'created',
-        createdAt: { $lt: fifteenMinutesAgo },
+        createdAt: { $lt: fiveMinutesAgo },
       }).populate('tickets');
 
       for (const payment of abandonedPayments) {

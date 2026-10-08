@@ -54,7 +54,7 @@ export default function OrganizerDashboard() {
 
   const publish = async (id) => {
     try {
-      await api.patch(`/events/${id}/status`, { status: 'published' });
+      await api.patch(`/events/${id}/status`, { status: 'pending_approval' });
       toast.success('Event submitted for approval!');
       load();
     } catch (err) {

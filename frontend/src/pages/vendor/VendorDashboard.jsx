@@ -171,10 +171,10 @@ export default function VendorDashboard() {
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">Gig Invitations</h2>
             <div className="mt-4 space-y-3">
-              {invitations.filter(g => g.status === 'pending').length === 0 ? (
+              {invitations.filter(g => ['pending', 'quoted', 'declined'].includes(g.status)).length === 0 ? (
                 <p className="text-sm text-ink/50">You have no pending gig invitations.</p>
               ) : (
-                invitations.filter(g => g.status === 'pending').map(gig => (
+                invitations.filter(g => ['pending', 'quoted', 'declined'].includes(g.status)).map(gig => (
                   <div key={gig._id} className="card p-4">
                     <div className="flex justify-between items-start">
                       <div>
@@ -224,6 +224,18 @@ export default function VendorDashboard() {
                         </div>
                       </div>
                     )}
+                    {gig.status === 'quoted' && (
+                      <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                        <p className="font-medium">Quote Sent: ${gig.quotedPrice}</p>
+                        <p className="mt-1 text-amber-700/80">Waiting for the organizer to review and accept your quote.</p>
+                      </div>
+                    )}
+                    {gig.status === 'declined' && gig.quotedPrice && (
+                      <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+                        <p className="font-medium text-red-900">Quote Rejected</p>
+                        <p className="mt-1 text-red-700/80">The organizer has rejected your quote of ${gig.quotedPrice}.</p>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -233,11 +245,11 @@ export default function VendorDashboard() {
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">My Upcoming Gigs Calendar</h2>
             <div className="mt-4 space-y-3">
-              {invitations.filter(g => g.status === 'accepted').length === 0 ? (
+              {invitations.filter(g => ['accepted', 'paid'].includes(g.status)).length === 0 ? (
                 <p className="text-sm text-ink/50">You have no upcoming gigs scheduled.</p>
               ) : (
                 invitations
-                  .filter(g => g.status === 'accepted')
+                  .filter(g => ['accepted', 'paid'].includes(g.status))
                   .sort((a, b) => new Date(a.event?.startDt) - new Date(b.event?.startDt))
                   .map(gig => (
                     <div key={gig._id} className="card p-4 flex items-center gap-4 border-l-4 border-l-magenta">

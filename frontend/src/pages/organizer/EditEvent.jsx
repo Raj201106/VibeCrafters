@@ -107,6 +107,15 @@ export default function EditEvent() {
     }
   };
 
+  const payVendor = async (bookingId) => {
+    try {
+      const { data } = await api.post(`/vendors/gigs/${bookingId}/pay`);
+      if (data.stripeUrl) window.location.href = data.stripeUrl;
+    } catch (err) {
+      toast.error(err.message || 'Payment initiation failed');
+    }
+  };
+
   const updateTierField = (id, field, value) =>
     setTiers((prev) => prev.map((tt) => (tt._id === id ? { ...tt, [field]: value, _dirty: true } : tt)));
 
@@ -307,14 +316,27 @@ export default function EditEvent() {
             <label className="label">Sent Invitations Status</label>
             <div className="mt-2 space-y-2">
               {invitations.map(inv => (
-                <div key={inv._id} className="flex items-center justify-between rounded-xl border border-ink/10 p-3">
+                <div key={inv._id} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-ink/10 p-3 gap-3">
                   <div>
-                    <p className="font-semibold text-ink">{inv.vendor?.name}</p>
-                    <p className="text-xs text-ink/50 capitalize">{inv.vendor?.serviceType}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-ink">{inv.vendor?.name}</p>
+                      <span className={`pill text-xs capitalize ${inv.status === 'pending' ? 'bg-ink/10 text-ink/60' : inv.status === 'quoted' ? 'bg-amber-100 text-amber-700' : inv.status === 'paid' ? 'bg-green-100 text-green-700' : inv.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
+                        {inv.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-ink/50 capitalize mt-0.5">{inv.vendor?.serviceType}</p>
+                    {inv.status === 'quoted' && (
+                      <div className="mt-2 text-sm text-ink/80">
+                        <p className="font-medium text-ink">Quoted Price: ${inv.quotedPrice}</p>
+                        {inv.quoteMessage && <p className="italic text-ink/60 mt-1">"{inv.quoteMessage}"</p>}
+                      </div>
+                    )}
                   </div>
-                  <span className={`pill text-xs capitalize ${inv.status === 'pending' ? 'bg-ink/10 text-ink/60' : inv.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
-                    {inv.status}
-                  </span>
+                  {inv.status === 'quoted' && (
+                    <button onClick={() => payVendor(inv._id)} className="btn-primary py-1.5 px-4 text-xs whitespace-nowrap">
+                      Accept & Pay
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

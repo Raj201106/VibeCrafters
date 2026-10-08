@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig } = require('../controllers/vendorController');
+const { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig, createQuotePaymentIntent, confirmQuotePayment } = require('../controllers/vendorController');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
 
 router.get('/gigs/my-invitations', protect, authorize('vendor'), getMyGigInvitations);
 router.patch('/gigs/:bookingId/status', protect, authorize('vendor'), respondToGig);
+router.post('/gigs/:bookingId/pay', protect, authorize('organizer', 'admin'), createQuotePaymentIntent);
+router.get('/gigs/:bookingId/verify-payment', protect, authorize('organizer', 'admin'), confirmQuotePayment);
 
 router.get('/', optionalAuth, listVendors);
 router.post('/', protect, authorize('vendor', 'admin'), createVendor);

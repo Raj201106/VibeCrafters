@@ -18,10 +18,19 @@ const vendorBookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'declined'],
+    enum: ['pending', 'quoted', 'accepted', 'declined', 'paid'],
     default: 'pending',
   },
   message: {
+    type: String,
+  },
+  quotedPrice: {
+    type: Number,
+  },
+  quoteMessage: {
+    type: String,
+  },
+  stripePaymentIntentId: {
     type: String,
   },
 }, { timestamps: true });

@@ -221,10 +221,10 @@ const getMyGigInvitations = asyncHandler(async (req, res) => {
 // @desc  Vendor accepts or declines a gig invitation
 // @route PATCH /api/vendors/gigs/:bookingId/status
 const respondToGig = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  if (!['accepted', 'declined'].includes(status)) {
+  const { status, quotedPrice, quoteMessage } = req.body;
+  if (!['accepted', 'declined', 'quoted'].includes(status)) {
     res.status(400);
-    throw new Error('Status must be accepted or declined.');
+    throw new Error('Status must be accepted, declined, or quoted.');
   }
 
   const vendor = await Vendor.findOne({ user: req.user._id });
@@ -239,7 +239,17 @@ const respondToGig = asyncHandler(async (req, res) => {
     throw new Error('Booking not found.');
   }
 
+  if (status === 'quoted' && !quotedPrice) {
+    res.status(400);
+    throw new Error('A quoted price is required to send a quote.');
+  }
+
   booking.status = status;
+  if (status === 'quoted') {
+    booking.quotedPrice = quotedPrice;
+    booking.quoteMessage = quoteMessage || '';
+  }
+
   await booking.save();
 
   // If accepted, add vendor to the Event's vendor array so they show up on public page
@@ -256,4 +266,94 @@ const respondToGig = asyncHandler(async (req, res) => {
   res.json({ success: true, booking });
 });
 
-module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig };
+// @desc  Organizer pays a vendor quote via Stripe
+// @route POST /api/vendors/gigs/:bookingId/pay
+const createQuotePaymentIntent = asyncHandler(async (req, res) => {
+  const booking = await VendorBooking.findById(req.params.bookingId).populate('vendor', 'name');
+  if (!booking) {
+    res.status(404);
+    throw new Error('Booking not found.');
+  }
+  if (String(booking.organizer) !== String(req.user._id)) {
+    res.status(403);
+    throw new Error('Not authorized to pay for this gig.');
+  }
+  if (booking.status !== 'quoted' || !booking.quotedPrice) {
+    res.status(400);
+    throw new Error('This gig is not awaiting payment for a quote.');
+  }
+
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  let stripeUrl = null;
+
+  if (process.env.STRIPE_SECRET_KEY) {
+    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd', // Assuming USD for now
+            product_data: {
+              name: `Vendor Service: ${booking.vendor.name}`,
+              description: `Event Booking Quote Payment`,
+            },
+            unit_amount: booking.quotedPrice * 100, // Stripe expects cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${clientUrl}/organizer/vendor-payment-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking._id}`,
+      cancel_url: `${clientUrl}/organizer/events/${booking.event}`,
+      client_reference_id: booking._id.toString(),
+    });
+    stripeUrl = session.url;
+  }
+
+  res.json({ success: true, stripeUrl, bookingId: booking._id });
+});
+
+// @desc  Verify Stripe payment for a vendor quote
+// @route GET /api/vendors/gigs/:bookingId/verify-payment
+const confirmQuotePayment = asyncHandler(async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) {
+    res.status(400);
+    throw new Error('Missing session_id');
+  }
+
+  const booking = await VendorBooking.findById(req.params.bookingId).populate('vendor');
+  if (!booking) {
+    res.status(404);
+    throw new Error('Booking not found');
+  }
+
+  if (booking.status === 'paid') {
+    return res.json({ success: true, booking });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Stripe key not configured');
+  }
+
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+  const session = await stripe.checkout.sessions.retrieve(session_id);
+
+  if (session.payment_status === 'paid') {
+    booking.status = 'paid';
+    booking.stripePaymentIntentId = session.payment_intent;
+    await booking.save();
+
+    await Event.findByIdAndUpdate(booking.event, {
+      $addToSet: { vendors: booking.vendor._id }
+    });
+
+    res.json({ success: true, booking });
+  } else {
+    res.status(400);
+    throw new Error('Payment not successful');
+  }
+});
+
+module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig, createQuotePaymentIntent, confirmQuotePayment };

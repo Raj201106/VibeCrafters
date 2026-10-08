@@ -23,10 +23,28 @@ export default function VendorDashboard() {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [invitations, setInvitations] = useState([]);
 
+  const [quoteData, setQuoteData] = useState({});
+
   const respondGig = async (bookingId, status) => {
     try {
       await api.patch(`/vendors/gigs/${bookingId}/status`, { status });
       toast.success(`Gig ${status}`);
+      load();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const sendQuote = async (bookingId) => {
+    const data = quoteData[bookingId];
+    if (!data?.price) return toast.error('Please enter a quote price');
+    try {
+      await api.patch(`/vendors/gigs/${bookingId}/status`, {
+        status: 'quoted',
+        quotedPrice: data.price,
+        quoteMessage: data.message,
+      });
+      toast.success('Quote sent successfully!');
       load();
     } catch (err) {
       toast.error(err.message);
@@ -163,7 +181,7 @@ export default function VendorDashboard() {
                         <p className="font-semibold text-ink">{gig.event?.title}</p>
                         <p className="text-xs text-ink/60">From: {gig.organizer?.name}</p>
                       </div>
-                      <span className={`pill capitalize ${gig.status === 'pending' ? 'bg-ink/10 text-ink/60' : gig.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
+                      <span className={`pill capitalize ${gig.status === 'pending' ? 'bg-ink/10 text-ink/60' : gig.status === 'quoted' ? 'bg-amber-100 text-amber-700' : gig.status === 'paid' ? 'bg-green-100 text-green-700' : gig.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
                         {gig.status}
                       </span>
                     </div>
@@ -173,13 +191,37 @@ export default function VendorDashboard() {
                       </div>
                     )}
                     {gig.status === 'pending' && (
-                      <div className="mt-4 flex gap-3">
-                        <button onClick={() => respondGig(gig._id, 'accepted')} className="btn-primary py-1.5 px-4 text-xs">
-                          Accept Gig
-                        </button>
-                        <button onClick={() => respondGig(gig._id, 'declined')} className="btn-secondary py-1.5 px-4 text-xs">
-                          Decline
-                        </button>
+                      <div className="mt-4 flex flex-col gap-3 border-t border-ink/10 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="label">Quote Price ($)</label>
+                            <input
+                              type="number"
+                              placeholder="e.g. 500"
+                              className="input"
+                              value={quoteData[gig._id]?.price || ''}
+                              onChange={(e) => setQuoteData({ ...quoteData, [gig._id]: { ...quoteData[gig._id], price: e.target.value } })}
+                            />
+                          </div>
+                          <div>
+                            <label className="label">Message to Organizer</label>
+                            <input
+                              type="text"
+                              placeholder="Optional message..."
+                              className="input"
+                              value={quoteData[gig._id]?.message || ''}
+                              onChange={(e) => setQuoteData({ ...quoteData, [gig._id]: { ...quoteData[gig._id], message: e.target.value } })}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-3 mt-1">
+                          <button onClick={() => sendQuote(gig._id)} className="btn-primary py-1.5 px-4 text-xs">
+                            Send Quote
+                          </button>
+                          <button onClick={() => respondGig(gig._id, 'declined')} className="btn-secondary py-1.5 px-4 text-xs">
+                            Decline Gig
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

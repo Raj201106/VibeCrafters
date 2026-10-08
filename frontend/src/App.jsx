@@ -35,6 +35,7 @@ const EditEvent = lazy(() => import('./pages/organizer/EditEvent'));
 const AttendeesList = lazy(() => import('./pages/organizer/AttendeesList'));
 const TicketScanner = lazy(() => import('./pages/organizer/TicketScanner'));
 const VenueManager = lazy(() => import('./pages/organizer/VenueManager'));
+const VendorPaymentSuccess = lazy(() => import('./pages/organizer/VendorPaymentSuccess'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
 const VendorDashboard = lazy(() => import('./pages/vendor/VendorDashboard'));
@@ -154,6 +155,14 @@ export default function App() {
                       element={
                         <ProtectedRoute roles={['organizer', 'admin']}>
                           <AttendeesList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/organizer/vendor-payment-success"
+                      element={
+                        <ProtectedRoute roles={['organizer', 'admin']}>
+                          <VendorPaymentSuccess />
                         </ProtectedRoute>
                       }
                     />

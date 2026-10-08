@@ -251,6 +251,13 @@ const updateStatus = asyncHandler(async (req, res) => {
     const Payment = require('../models/Payment');
     const { sendEmail } = require('../utils/email');
     
+    // Block cancellation if anyone has already checked in
+    const hasCheckedInTickets = await Ticket.exists({ event: event._id, status: 'checked-in' });
+    if (hasCheckedInTickets) {
+      res.status(400);
+      throw new Error('Cannot cancel event: Attendees have already started checking in.');
+    }
+    
     // Find all active tickets
     const tickets = await Ticket.find({ event: event._id, status: { $in: ['reserved', 'booked'] } }).populate('user');
     for (const ticket of tickets) {

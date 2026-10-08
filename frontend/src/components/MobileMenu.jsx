@@ -21,12 +21,17 @@ export default function MobileMenu({ open, onClose, user, onLogout }) {
   const dashboardLabelFor = (role) =>
     ({ admin: t('nav.adminConsole'), organizer: t('nav.organizerStudio'), vendor: t('nav.vendorHub') }[role] || null);
 
-  const publicLinks = [
-    { to: '/events', label: t('nav.exploreEvents') },
-    { to: '/gallery', label: t('nav.gallery') },
-    { to: '/about', label: t('nav.about') },
-    { to: '/contact', label: t('nav.contact') },
-  ];
+  const publicLinks = [];
+  if (!user || user?.role === 'attendee') {
+    publicLinks.push(
+      { to: '/events', label: t('nav.exploreEvents') },
+      { to: '/gallery', label: t('nav.gallery') },
+      { to: '/about', label: t('nav.about') },
+      { to: '/contact', label: t('nav.contact') }
+    );
+  } else if (user?.role === 'organizer' || user?.role === 'vendor') {
+    publicLinks.push({ to: '/events', label: t('nav.exploreEvents') });
+  }
 
   const dashboardPath = user ? dashboardPathFor(user.role) : null;
 

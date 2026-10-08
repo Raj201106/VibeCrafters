@@ -63,32 +63,28 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          <NavLink to="/events" className={linkClass}>
-            {t('nav.exploreEvents')}
-          </NavLink>
-          <NavLink to="/gallery" className={linkClass}>
-            {t('nav.gallery')}
-          </NavLink>
-          <NavLink to="/about" className={linkClass}>
-            {t('nav.about')}
-          </NavLink>
-          <NavLink to="/contact" className={linkClass}>
-            {t('nav.contact')}
-          </NavLink>
+          {(!user || user?.role === 'attendee') && (
+            <>
+              <NavLink to="/events" className={linkClass}>{t('nav.exploreEvents')}</NavLink>
+              <NavLink to="/gallery" className={linkClass}>{t('nav.gallery')}</NavLink>
+              <NavLink to="/about" className={linkClass}>{t('nav.about')}</NavLink>
+              <NavLink to="/contact" className={linkClass}>{t('nav.contact')}</NavLink>
+            </>
+          )}
           {user?.role === 'organizer' && (
-            <NavLink to="/organizer" className={linkClass}>
-              {t('nav.organizerStudio')}
-            </NavLink>
+            <>
+              <NavLink to="/events" className={linkClass}>{t('nav.exploreEvents')}</NavLink>
+              <NavLink to="/organizer" className={linkClass}>{t('nav.organizerStudio')}</NavLink>
+            </>
           )}
           {user?.role === 'vendor' && (
-            <NavLink to="/vendor" className={linkClass}>
-              {t('nav.vendorHub')}
-            </NavLink>
+            <>
+              <NavLink to="/events" className={linkClass}>{t('nav.exploreEvents')}</NavLink>
+              <NavLink to="/vendor" className={linkClass}>{t('nav.vendorHub')}</NavLink>
+            </>
           )}
           {user?.role === 'admin' && (
-            <NavLink to="/admin" className={linkClass}>
-              {t('nav.adminConsole')}
-            </NavLink>
+            <NavLink to="/admin" className={linkClass}>{t('nav.adminConsole')}</NavLink>
           )}
         </div>
 

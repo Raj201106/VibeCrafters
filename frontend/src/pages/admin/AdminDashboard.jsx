@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Calendar, Ticket, UserCheck, Megaphone, Send, Mail, Store, CheckCircle2, Clock, Users } from 'lucide-react';
+import { DollarSign, Calendar, Ticket, UserCheck, Megaphone, Send, Mail, Store, CheckCircle2, Clock, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
@@ -39,6 +39,16 @@ export default function AdminDashboard() {
     try {
       await api.patch(`/events/${eventId}/status`, { status: 'published' });
       toast.success('Event approved and published successfully.');
+      loadPendingEvents();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const rejectEvent = async (eventId) => {
+    try {
+      await api.patch(`/events/${eventId}/status`, { status: 'draft' });
+      toast.success('Event rejected and returned to drafts.');
       loadPendingEvents();
     } catch (err) {
       toast.error(err.message);
@@ -211,12 +221,20 @@ export default function AdminDashboard() {
                   <p className="text-xs capitalize text-ink/50">{t(`categories.${ev.category}`)} · {ev.organizer?.name}</p>
                   <Link to={`/events/${ev.slug}`} target="_blank" className="text-xs text-magenta hover:underline">Preview Event</Link>
                 </div>
-                <button
-                  onClick={() => approveEvent(ev._id)}
-                  className="pill flex items-center gap-1 bg-ink/10 text-ink/60 transition hover:bg-vibe-gradient hover:text-white"
-                >
-                  <CheckCircle2 size={12} /> Approve & Publish
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => approveEvent(ev._id)}
+                    className="pill flex items-center gap-1 bg-ink/10 text-ink/60 transition hover:bg-vibe-gradient hover:text-white"
+                  >
+                    <CheckCircle2 size={12} /> Approve & Publish
+                  </button>
+                  <button
+                    onClick={() => rejectEvent(ev._id)}
+                    className="pill flex items-center gap-1 bg-red-50 text-red-600 transition hover:bg-red-500 hover:text-white"
+                  >
+                    <X size={12} /> Reject
+                  </button>
+                </div>
               </div>
             ))}
           </div>

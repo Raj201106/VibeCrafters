@@ -174,9 +174,11 @@ export default function OrganizerDashboard() {
                             Submit for Approval
                           </button>
                         )}
-                        <Link to={`/organizer/edit/${e.slug}`} className="text-xs font-semibold text-ink/60 hover:text-ink hover:underline">
-                          {t('organizerDashboard.edit')}
-                        </Link>
+                        {e.status !== 'cancelled' && (
+                          <Link to={`/organizer/edit/${e.slug}`} className="text-xs font-semibold text-ink/60 hover:text-ink hover:underline">
+                            {t('organizerDashboard.edit')}
+                          </Link>
+                        )}
                         {e.status !== 'draft' && (
                           <Link to={`/organizer/events/${e._id}/attendees`} className="text-xs font-semibold text-ink/60 hover:text-ink hover:underline">
                             {t('organizerDashboard.attendees')}

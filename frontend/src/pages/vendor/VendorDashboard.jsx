@@ -153,10 +153,10 @@ export default function VendorDashboard() {
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">Gig Invitations</h2>
             <div className="mt-4 space-y-3">
-              {invitations.length === 0 ? (
-                <p className="text-sm text-ink/50">You have no gig invitations yet.</p>
+              {invitations.filter(g => g.status === 'pending').length === 0 ? (
+                <p className="text-sm text-ink/50">You have no pending gig invitations.</p>
               ) : (
-                invitations.map(gig => (
+                invitations.filter(g => g.status === 'pending').map(gig => (
                   <div key={gig._id} className="card p-4">
                     <div className="flex justify-between items-start">
                       <div>
@@ -184,6 +184,38 @@ export default function VendorDashboard() {
                     )}
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">My Upcoming Gigs Calendar</h2>
+            <div className="mt-4 space-y-3">
+              {invitations.filter(g => g.status === 'accepted').length === 0 ? (
+                <p className="text-sm text-ink/50">You have no upcoming gigs scheduled.</p>
+              ) : (
+                invitations
+                  .filter(g => g.status === 'accepted')
+                  .sort((a, b) => new Date(a.event?.startDt) - new Date(b.event?.startDt))
+                  .map(gig => (
+                    <div key={gig._id} className="card p-4 flex items-center gap-4 border-l-4 border-l-magenta">
+                      <div className="flex flex-col items-center justify-center rounded-xl bg-ink/5 p-3 min-w-16 text-center">
+                        <span className="text-xs font-semibold text-magenta uppercase leading-none">
+                          {new Date(gig.event?.startDt).toLocaleDateString('en-US', { month: 'short' })}
+                        </span>
+                        <span className="text-2xl font-bold text-ink leading-none mt-1">
+                          {new Date(gig.event?.startDt).toLocaleDateString('en-US', { day: 'numeric' })}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-ink">{gig.event?.title}</p>
+                        <p className="text-xs text-ink/60 mt-1 flex items-center gap-1.5">
+                           <Clock size={12}/> {new Date(gig.event?.startDt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        </p>
+                        <p className="text-xs text-ink/60 mt-0.5">Organizer: {gig.organizer?.name}</p>
+                      </div>
+                    </div>
+                  ))
               )}
             </div>
           </div>

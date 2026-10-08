@@ -29,7 +29,7 @@ const eventSchema = new mongoose.Schema(
     endDt: { type: Date, required: true },
     status: {
       type: String,
-      enum: ['draft', 'published', 'completed', 'cancelled'],
+      enum: ['draft', 'pending_approval', 'published', 'completed', 'cancelled'],
       default: 'draft',
     },
     tags: [{ type: String }],

@@ -11,6 +11,7 @@ import { dateLocale } from '../../i18n/dateLocale';
 
 const statusPill = {
   draft: 'bg-ink/10 text-ink/60',
+  pending_approval: 'bg-orange-100 text-orange-600',
   published: 'bg-vibe-gradient-soft text-magenta',
   completed: 'bg-ink/10 text-ink/50',
   cancelled: 'bg-red-100 text-red-600',
@@ -54,7 +55,7 @@ export default function OrganizerDashboard() {
   const publish = async (id) => {
     try {
       await api.patch(`/events/${id}/status`, { status: 'published' });
-      toast.success(t('organizerDashboard.publishedToast'));
+      toast.success('Event submitted for approval!');
       load();
     } catch (err) {
       toast.error(err.message);
@@ -164,13 +165,13 @@ export default function OrganizerDashboard() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`pill capitalize ${statusPill[e.status]}`}>{t(`eventStatus.${e.status}`)}</span>
+                      <span className={`pill capitalize ${statusPill[e.status]}`}>{t(`eventStatus.${e.status}`).replace('_', ' ')}</span>
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
                         {e.status === 'draft' && (
                           <button onClick={() => publish(e._id)} className="text-xs font-semibold text-magenta hover:underline">
-                            {t('organizerDashboard.publish')}
+                            Submit for Approval
                           </button>
                         )}
                         <Link to={`/organizer/edit/${e.slug}`} className="text-xs font-semibold text-ink/60 hover:text-ink hover:underline">

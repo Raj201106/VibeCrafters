@@ -20,8 +20,10 @@ export default function AdminDashboard() {
   const [approvingId, setApprovingId] = useState(null);
   const [promo, setPromo] = useState({ headline: '', message: '', ctaLabel: '', ctaUrl: '' });
   const [sending, setSending] = useState(false);
+  const [pendingEvents, setPendingEvents] = useState(null);
 
   const loadVendors = () => api.get('/vendors').then(({ data }) => setVendors(data.vendors));
+  const loadPendingEvents = () => api.get('/events?status=pending_approval').then(({ data }) => setPendingEvents(data.events));
 
   useEffect(() => {
     api.get('/reports/overview').then(({ data }) => setKpis(data.kpis));
@@ -30,7 +32,18 @@ export default function AdminDashboard() {
     );
     api.get('/contact').then(({ data }) => setContacts(data.contacts)).catch(() => setContacts([]));
     loadVendors();
+    loadPendingEvents();
   }, []);
+
+  const approveEvent = async (eventId) => {
+    try {
+      await api.patch(`/events/${eventId}/status`, { status: 'published' });
+      toast.success('Event approved and published successfully.');
+      loadPendingEvents();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const approveVendor = async (vendor) => {
     setApprovingId(vendor._id);
@@ -173,6 +186,37 @@ export default function AdminDashboard() {
                     </button>
                   )}
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="card mt-8 p-6">
+        <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+          <Calendar size={18} className="text-magenta" /> Event Approvals
+        </h2>
+        <p className="mt-1 text-sm text-ink/60">Review and publish events submitted by organizers.</p>
+
+        {pendingEvents === null ? (
+          <LoadingSpinner />
+        ) : pendingEvents.length === 0 ? (
+          <p className="mt-4 text-sm text-ink/40">No events pending approval.</p>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {pendingEvents.map((ev) => (
+              <div key={ev._id} className="flex items-center justify-between rounded-xl2 border border-ink/8 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-ink">{ev.title}</p>
+                  <p className="text-xs capitalize text-ink/50">{t(`categories.${ev.category}`)} · {ev.organizer?.name}</p>
+                  <Link to={`/events/${ev.slug}`} target="_blank" className="text-xs text-magenta hover:underline">Preview Event</Link>
+                </div>
+                <button
+                  onClick={() => approveEvent(ev._id)}
+                  className="pill flex items-center gap-1 bg-ink/10 text-ink/60 transition hover:bg-vibe-gradient hover:text-white"
+                >
+                  <CheckCircle2 size={12} /> Approve & Publish
+                </button>
               </div>
             ))}
           </div>

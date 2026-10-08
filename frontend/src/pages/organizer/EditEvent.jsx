@@ -20,6 +20,7 @@ const toLocalInput = (iso) => {
 
 const statusPill = {
   draft: 'bg-ink/10 text-ink/60',
+  pending_approval: 'bg-orange-100 text-orange-600',
   published: 'bg-vibe-gradient-soft text-magenta',
   completed: 'bg-ink/10 text-ink/50',
   cancelled: 'bg-red-100 text-red-600',
@@ -39,6 +40,7 @@ export default function EditEvent() {
   const [savingTierId, setSavingTierId] = useState(null);
   const [addingTier, setAddingTier] = useState(false);
   const [fileName, setFileName] = useState('');
+  const [invitations, setInvitations] = useState([]);
 
   const load = () => {
     api
@@ -57,6 +59,11 @@ export default function EditEvent() {
           agenda: data.event.agenda?.length ? data.event.agenda : [emptyAgenda()],
         });
         setTiers(data.ticketTypes.map((tt) => ({ ...tt, _dirty: false })));
+        
+        // Fetch invitations now that we have the ID
+        api.get(`/events/${data.event._id}/invitations`)
+           .then((res) => setInvitations(res.data.invitations))
+           .catch(() => setInvitations([]));
       })
       .catch((err) => toast.error(err.message || t('editEvent.loadError')));
   };
@@ -177,7 +184,7 @@ export default function EditEvent() {
           <h1 className="font-display text-3xl font-semibold text-ink">{t('editEvent.title')}</h1>
           <p className="mt-1 text-ink/60">{t('editEvent.subtitle')}</p>
         </div>
-        <span className={`pill mt-1 capitalize ${statusPill[event.status]}`}>{t(`eventStatus.${event.status}`)}</span>
+        <span className={`pill mt-1 capitalize ${statusPill[event.status]}`}>{t(`eventStatus.${event.status}`).replace('_', ' ')}</span>
       </div>
 
       {event.status === 'published' && (
@@ -287,6 +294,25 @@ export default function EditEvent() {
             </div>
           )}
         </div>
+
+        {invitations.length > 0 && (
+          <div className="mt-6">
+            <label className="label">Sent Invitations Status</label>
+            <div className="mt-2 space-y-2">
+              {invitations.map(inv => (
+                <div key={inv._id} className="flex items-center justify-between rounded-xl border border-ink/10 p-3">
+                  <div>
+                    <p className="font-semibold text-ink">{inv.vendor?.name}</p>
+                    <p className="text-xs text-ink/50 capitalize">{inv.vendor?.serviceType}</p>
+                  </div>
+                  <span className={`pill text-xs capitalize ${inv.status === 'pending' ? 'bg-ink/10 text-ink/60' : inv.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
+                    {inv.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="label">{t('createEvent.stepAgenda')}</label>

@@ -7,6 +7,7 @@ const {
   updateEvent,
   updateStatus,
   deleteEvent,
+  getEventInvitations,
 } = require('../controllers/eventController');
 const { addTicketType, listTicketTypes, updateTicketType, deleteTicketType, eventAttendees, checkInReport } = require('../controllers/ticketController');
 const { protect, authorize, optionalAuth } = require('../middleware/auth');
@@ -28,5 +29,6 @@ router.put('/:eventId/ticket-types/:id', protect, authorize('organizer', 'admin'
 router.delete('/:eventId/ticket-types/:id', protect, authorize('organizer', 'admin'), deleteTicketType);
 router.get('/:eventId/attendees', protect, authorize('organizer', 'admin'), eventAttendees);
 router.get('/:eventId/check-in-report', protect, authorize('organizer', 'admin'), checkInReport);
+router.get('/:eventId/invitations', protect, authorize('organizer', 'admin'), getEventInvitations);
 
 module.exports = router;

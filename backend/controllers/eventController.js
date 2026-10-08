@@ -245,11 +245,11 @@ const updateEvent = asyncHandler(async (req, res) => {
   res.json({ success: true, event });
 });
 
-// @desc  Change status: draft -> published -> completed / cancelled
+// @desc  Change status: draft -> pending_approval -> published -> completed / cancelled
 // @route PATCH /api/events/:id/status
 const updateStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  const valid = ['draft', 'published', 'completed', 'cancelled'];
+  let { status } = req.body;
+  const valid = ['draft', 'pending_approval', 'published', 'completed', 'cancelled'];
   if (!valid.includes(status)) {
     res.status(400);
     throw new Error('Invalid status value.');
@@ -265,11 +265,16 @@ const updateStatus = asyncHandler(async (req, res) => {
     throw new Error('Not authorized.');
   }
 
-  if (status === 'published') {
+  // If an organizer tries to publish, force it into 'pending_approval' instead
+  if (status === 'published' && req.user.role !== 'admin') {
+    status = 'pending_approval';
+  }
+
+  if (status === 'published' || status === 'pending_approval') {
     const ticketTypeCount = await TicketType.countDocuments({ event: event._id });
     if (!ticketTypeCount) {
       res.status(400);
-      throw new Error('Add at least one ticket type before publishing.');
+      throw new Error('Add at least one ticket type before publishing or requesting approval.');
     }
   }
 
@@ -354,4 +359,18 @@ const deleteEvent = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Event deleted.' });
 });
 
-module.exports = { createEvent, listEvents, getEvent, updateEvent, updateStatus, deleteEvent };
+// @desc  Get gig invitations for a specific event
+// @route GET /api/events/:eventId/invitations
+const getEventInvitations = asyncHandler(async (req, res) => {
+  const event = await Event.findById(req.params.eventId);
+  if (!event || (String(event.organizer) !== String(req.user._id) && req.user.role !== 'admin')) {
+    res.status(403);
+    throw new Error('Not authorized.');
+  }
+
+  const VendorBooking = require('../models/VendorBooking');
+  const invitations = await VendorBooking.find({ event: event._id }).populate('vendor', 'name serviceType contactEmail contactPhone rating');
+  res.json({ success: true, invitations });
+});
+
+module.exports = { createEvent, listEvents, getEvent, updateEvent, updateStatus, deleteEvent, getEventInvitations };

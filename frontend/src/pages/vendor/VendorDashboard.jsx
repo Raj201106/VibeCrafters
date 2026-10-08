@@ -21,6 +21,17 @@ export default function VendorDashboard() {
   const [expandedReviewsId, setExpandedReviewsId] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+  const [invitations, setInvitations] = useState([]);
+
+  const respondGig = async (bookingId, status) => {
+    try {
+      await api.patch(`/vendors/gigs/${bookingId}/status`, { status });
+      toast.success(`Gig ${status}`);
+      load();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const toggleReviews = async (vendorId) => {
     if (expandedReviewsId === vendorId) {
@@ -39,7 +50,10 @@ export default function VendorDashboard() {
     }
   };
 
-  const load = () => api.get('/vendors').then(({ data }) => setVendors(data.vendors));
+  const load = () => {
+    api.get('/vendors').then(({ data }) => setVendors(data.vendors));
+    api.get('/vendors/gigs/my-invitations').then(({ data }) => setInvitations(data.gigs)).catch(() => setInvitations([]));
+  };
   useEffect(() => { load(); }, []);
 
   const startEdit = (v) => {
@@ -136,6 +150,44 @@ export default function VendorDashboard() {
         )}
 
         <div className="space-y-8">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">Gig Invitations</h2>
+            <div className="mt-4 space-y-3">
+              {invitations.length === 0 ? (
+                <p className="text-sm text-ink/50">You have no gig invitations yet.</p>
+              ) : (
+                invitations.map(gig => (
+                  <div key={gig._id} className="card p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-ink">{gig.event?.title}</p>
+                        <p className="text-xs text-ink/60">From: {gig.organizer?.name}</p>
+                      </div>
+                      <span className={`pill capitalize ${gig.status === 'pending' ? 'bg-ink/10 text-ink/60' : gig.status === 'accepted' ? 'bg-vibe-gradient-soft text-magenta' : 'bg-red-100 text-red-600'}`}>
+                        {gig.status}
+                      </span>
+                    </div>
+                    {gig.message && (
+                      <div className="mt-3 rounded-lg bg-ink/[0.03] p-3 text-sm text-ink/80 italic">
+                        "{gig.message}"
+                      </div>
+                    )}
+                    {gig.status === 'pending' && (
+                      <div className="mt-4 flex gap-3">
+                        <button onClick={() => respondGig(gig._id, 'accepted')} className="btn-primary py-1.5 px-4 text-xs">
+                          Accept Gig
+                        </button>
+                        <button onClick={() => respondGig(gig._id, 'declined')} className="btn-secondary py-1.5 px-4 text-xs">
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">{t('vendorDashboard.myListings')}</h2>
             <div className="mt-4 space-y-3">

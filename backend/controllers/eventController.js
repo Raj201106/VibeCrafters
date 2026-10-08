@@ -30,13 +30,24 @@ const createEvent = asyncHandler(async (req, res) => {
     category,
     bannerUrl,
     venue,
-    vendors,
+    vendors: [], // Handled via invitations now
     agenda,
     startDt,
     endDt,
     tags,
     organizer: req.user._id,
   });
+
+  if (Array.isArray(vendors) && vendors.length) {
+    const VendorBooking = require('../models/VendorBooking');
+    const bookings = vendors.map(v => ({
+      event: event._id,
+      vendor: v,
+      organizer: req.user._id,
+      message: 'I would like to invite you to provide services for this event.'
+    }));
+    await VendorBooking.insertMany(bookings);
+  }
 
   if (venue) {
     await Venue.findByIdAndUpdate(venue, {
@@ -173,12 +184,28 @@ const updateEvent = asyncHandler(async (req, res) => {
   const oldVenueId = event.venue ? String(event.venue) : null;
   const datesChanged = req.body.startDt !== undefined || req.body.endDt !== undefined;
 
-  // Whitelist editable fields only — never let the request body set `organizer`, `status`,
-  // `slug`, or other internal fields directly (status changes go through updateStatus below,
-  // which validates ticket types exist before publishing).
-  const editable = ['title', 'description', 'category', 'bannerUrl', 'venue', 'vendors', 'agenda', 'startDt', 'endDt', 'tags'];
+  // Whitelist editable fields only (exclude vendors as it's managed via invitations now)
+  const editable = ['title', 'description', 'category', 'bannerUrl', 'venue', 'agenda', 'startDt', 'endDt', 'tags'];
   for (const field of editable) {
     if (req.body[field] !== undefined) event[field] = req.body[field];
+  }
+
+  // Handle new vendor invitations added during edit
+  if (req.body.vendors && Array.isArray(req.body.vendors)) {
+    const VendorBooking = require('../models/VendorBooking');
+    const existingBookings = await VendorBooking.find({ event: event._id });
+    const existingVendorIds = existingBookings.map(b => String(b.vendor));
+    
+    const newVendors = req.body.vendors.filter(v => !existingVendorIds.includes(String(v)));
+    if (newVendors.length > 0) {
+      const bookings = newVendors.map(v => ({
+        event: event._id,
+        vendor: v,
+        organizer: req.user._id,
+        message: 'I would like to invite you to provide services for this event.'
+      }));
+      await VendorBooking.insertMany(bookings);
+    }
   }
 
   const newVenueId = event.venue ? String(event.venue) : null;

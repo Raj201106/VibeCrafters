@@ -168,4 +168,92 @@ const getVendorReviews = asyncHandler(async (req, res) => {
   res.json({ success: true, reviews });
 });
 
-module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews };
+const VendorBooking = require('../models/VendorBooking');
+
+// @desc  Organizer invites a vendor to an event
+// @route POST /api/vendors/:id/invite
+const inviteVendor = asyncHandler(async (req, res) => {
+  const { eventId, message } = req.body;
+  if (!eventId) {
+    res.status(400);
+    throw new Error('Event ID is required.');
+  }
+
+  const event = await Event.findById(eventId);
+  if (!event || String(event.organizer) !== String(req.user._id)) {
+    res.status(403);
+    throw new Error('Not authorized for this event.');
+  }
+
+  const existing = await VendorBooking.findOne({ event: eventId, vendor: req.params.id });
+  if (existing) {
+    res.status(400);
+    throw new Error('You have already invited this vendor to this event.');
+  }
+
+  const booking = await VendorBooking.create({
+    event: eventId,
+    vendor: req.params.id,
+    organizer: req.user._id,
+    message: message || '',
+  });
+
+  res.status(201).json({ success: true, booking });
+});
+
+// @desc  Get pending & accepted gig invitations for the logged-in vendor
+// @route GET /api/vendors/gigs/my-invitations
+const getMyGigInvitations = asyncHandler(async (req, res) => {
+  const vendor = await Vendor.findOne({ user: req.user._id });
+  if (!vendor) {
+    res.status(404);
+    throw new Error('Vendor profile not found.');
+  }
+
+  const gigs = await VendorBooking.find({ vendor: vendor._id })
+    .populate('event', 'title startDt endDt venue')
+    .populate('organizer', 'name email contactPhone')
+    .sort({ createdAt: -1 });
+
+  res.json({ success: true, gigs });
+});
+
+// @desc  Vendor accepts or declines a gig invitation
+// @route PATCH /api/vendors/gigs/:bookingId/status
+const respondToGig = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  if (!['accepted', 'declined'].includes(status)) {
+    res.status(400);
+    throw new Error('Status must be accepted or declined.');
+  }
+
+  const vendor = await Vendor.findOne({ user: req.user._id });
+  if (!vendor) {
+    res.status(404);
+    throw new Error('Vendor profile not found.');
+  }
+
+  const booking = await VendorBooking.findOne({ _id: req.params.bookingId, vendor: vendor._id });
+  if (!booking) {
+    res.status(404);
+    throw new Error('Booking not found.');
+  }
+
+  booking.status = status;
+  await booking.save();
+
+  // If accepted, add vendor to the Event's vendor array so they show up on public page
+  if (status === 'accepted') {
+    await Event.findByIdAndUpdate(booking.event, {
+      $addToSet: { vendors: vendor._id }
+    });
+  } else if (status === 'declined') {
+    await Event.findByIdAndUpdate(booking.event, {
+      $pull: { vendors: vendor._id }
+    });
+  }
+
+  res.json({ success: true, booking });
+});
+
+module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig };

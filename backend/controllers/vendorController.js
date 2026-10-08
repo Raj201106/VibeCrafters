@@ -266,6 +266,33 @@ const respondToGig = asyncHandler(async (req, res) => {
   res.json({ success: true, booking });
 });
 
+// @desc  Organizer rejects a vendor's quote
+// @route PATCH /api/vendors/gigs/:bookingId/reject
+const organizerRejectQuote = asyncHandler(async (req, res) => {
+  const booking = await VendorBooking.findById(req.params.bookingId);
+  if (!booking) {
+    res.status(404);
+    throw new Error('Booking not found.');
+  }
+  if (String(booking.organizer) !== String(req.user._id)) {
+    res.status(403);
+    throw new Error('Not authorized to reject this quote.');
+  }
+  if (booking.status !== 'quoted') {
+    res.status(400);
+    throw new Error('Only quoted gigs can be rejected.');
+  }
+
+  booking.status = 'declined';
+  await booking.save();
+
+  await Event.findByIdAndUpdate(booking.event, {
+    $pull: { vendors: booking.vendor }
+  });
+
+  res.json({ success: true, booking });
+});
+
 // @desc  Organizer pays a vendor quote via Stripe
 // @route POST /api/vendors/gigs/:bookingId/pay
 const createQuotePaymentIntent = asyncHandler(async (req, res) => {
@@ -356,4 +383,4 @@ const confirmQuotePayment = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig, createQuotePaymentIntent, confirmQuotePayment };
+module.exports = { createVendor, listVendors, approveVendor, updateVendor, reviewVendor, getVendorReviews, inviteVendor, getMyGigInvitations, respondToGig, organizerRejectQuote, createQuotePaymentIntent, confirmQuotePayment };

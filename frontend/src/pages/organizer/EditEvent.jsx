@@ -116,6 +116,16 @@ export default function EditEvent() {
     }
   };
 
+  const rejectQuote = async (bookingId) => {
+    try {
+      await api.patch(`/vendors/gigs/${bookingId}/reject`);
+      toast.success('Vendor quote rejected');
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Failed to reject quote');
+    }
+  };
+
   const updateTierField = (id, field, value) =>
     setTiers((prev) => prev.map((tt) => (tt._id === id ? { ...tt, [field]: value, _dirty: true } : tt)));
 
@@ -333,9 +343,14 @@ export default function EditEvent() {
                     )}
                   </div>
                   {inv.status === 'quoted' && (
-                    <button onClick={() => payVendor(inv._id)} className="btn-primary py-1.5 px-4 text-xs whitespace-nowrap">
-                      Accept & Pay
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button onClick={() => payVendor(inv._id)} className="btn-primary py-1.5 px-4 text-xs whitespace-nowrap">
+                        Accept & Pay
+                      </button>
+                      <button onClick={() => rejectQuote(inv._id)} className="btn-secondary py-1.5 px-4 text-xs whitespace-nowrap text-red-500 hover:bg-red-50 hover:text-red-600 border-red-200 hover:border-red-300">
+                        Reject
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}

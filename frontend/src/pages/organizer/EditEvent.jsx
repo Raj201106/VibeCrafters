@@ -189,7 +189,9 @@ export default function EditEvent() {
           <h1 className="font-display text-3xl font-semibold text-ink">{t('editEvent.title')}</h1>
           <p className="mt-1 text-ink/60">{t('editEvent.subtitle')}</p>
         </div>
-        <span className={`pill mt-1 capitalize ${statusPill[event.status]}`}>{t(`eventStatus.${event.status}`).replace('_', ' ')}</span>
+        <span className={`pill mt-1 capitalize ${statusPill[event.status]}`}>
+          {event.status === 'pending_approval' ? 'Pending' : t(`eventStatus.${event.status}`)}
+        </span>
       </div>
 
       {event.status === 'published' && (

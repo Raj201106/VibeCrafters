@@ -165,7 +165,9 @@ export default function OrganizerDashboard() {
                       </div>
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`pill capitalize ${statusPill[e.status]}`}>{t(`eventStatus.${e.status}`).replace('_', ' ')}</span>
+                      <span className={`pill capitalize ${statusPill[e.status]}`}>
+                        {e.status === 'pending_approval' ? 'Pending' : t(`eventStatus.${e.status}`)}
+                      </span>
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">

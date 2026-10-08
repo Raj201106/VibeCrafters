@@ -43,9 +43,19 @@ export default function EditEvent() {
   const [invitations, setInvitations] = useState([]);
 
   const load = () => {
-    api
-      .get(`/events/${slug}`)
-      .then(({ data }) => {
+    api.get(`/events/${slug}`)
+      .then(async ({ data }) => {
+        let eventInvitations = [];
+        try {
+          const invRes = await api.get(`/events/${data.event._id}/invitations`);
+          eventInvitations = invRes.data.invitations;
+          setInvitations(eventInvitations);
+        } catch (err) {}
+
+        const invitedVendorIds = eventInvitations.map(inv => inv.vendor?._id || inv.vendor);
+        const acceptedVendorIds = (data.event.vendors || []).map((v) => v._id);
+        const allCheckedVendorIds = [...new Set([...invitedVendorIds, ...acceptedVendorIds])];
+
         setEvent(data.event);
         setForm({
           title: data.event.title,
@@ -53,17 +63,12 @@ export default function EditEvent() {
           category: data.event.category,
           bannerUrl: data.event.bannerUrl || '',
           venue: data.event.venue?._id || '',
-          vendors: (data.event.vendors || []).map((v) => v._id),
+          vendors: allCheckedVendorIds,
           startDt: toLocalInput(data.event.startDt),
           endDt: toLocalInput(data.event.endDt),
           agenda: data.event.agenda?.length ? data.event.agenda : [emptyAgenda()],
         });
         setTiers(data.ticketTypes.map((tt) => ({ ...tt, _dirty: false })));
-        
-        // Fetch invitations now that we have the ID
-        api.get(`/events/${data.event._id}/invitations`)
-           .then((res) => setInvitations(res.data.invitations))
-           .catch(() => setInvitations([]));
       })
       .catch((err) => toast.error(err.message || t('editEvent.loadError')));
   };

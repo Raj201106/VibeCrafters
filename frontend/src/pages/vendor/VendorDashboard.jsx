@@ -90,48 +90,50 @@ export default function VendorDashboard() {
       <p className="mt-1 text-ink/60">{t('vendorDashboard.subtitle')}</p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <motion.form
-          onSubmit={submit}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card space-y-4 p-6"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
-              <Store size={18} className="text-magenta" /> {editingId ? t('vendorDashboard.editListing') : t('vendorDashboard.addProfile')}
-            </h2>
-            {editingId && (
-              <button type="button" onClick={cancelEdit} className="text-xs font-medium text-ink/50 hover:text-ink">
-                <X size={14} className="inline" /> {t('vendorDashboard.cancel')}
-              </button>
-            )}
-          </div>
-          <div>
-            <label className="label">{t('vendorDashboard.businessName')}</label>
-            <input required className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">{t('vendorDashboard.serviceType')}</label>
-            <select className="input" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })}>
-              {serviceTypes.map((s) => <option key={s} value={s}>{t(`serviceTypes.${s}`)}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label">{t('vendorDashboard.contactEmail')}</label>
-            <input type="email" required className="input" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">{t('vendorDashboard.contactPhone')}</label>
-            <input required className="input" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
-          </div>
-          <div>
-            <label className="label">{t('vendorDashboard.pricingNotes')}</label>
-            <textarea className="input min-h-20" value={form.pricingNotes} onChange={(e) => setForm({ ...form, pricingNotes: e.target.value })} />
-          </div>
-          <button type="submit" disabled={busy} className="btn-primary w-full">
-            {busy ? t('vendorDashboard.saving') : editingId ? t('vendorDashboard.saveChanges') : t('vendorDashboard.submitForApproval')}
-          </button>
-        </motion.form>
+        {(!myListings.length || editingId) && (
+          <motion.form
+            onSubmit={submit}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card space-y-4 p-6"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+                <Store size={18} className="text-magenta" /> {editingId ? t('vendorDashboard.editListing') : t('vendorDashboard.addProfile')}
+              </h2>
+              {editingId && (
+                <button type="button" onClick={cancelEdit} className="text-xs font-medium text-ink/50 hover:text-ink">
+                  <X size={14} className="inline" /> {t('vendorDashboard.cancel')}
+                </button>
+              )}
+            </div>
+            <div>
+              <label className="label">{t('vendorDashboard.businessName')}</label>
+              <input required className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">{t('vendorDashboard.serviceType')}</label>
+              <select className="input" value={form.serviceType} onChange={(e) => setForm({ ...form, serviceType: e.target.value })}>
+                {serviceTypes.map((s) => <option key={s} value={s}>{t(`serviceTypes.${s}`)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">{t('vendorDashboard.contactEmail')}</label>
+              <input type="email" required className="input" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">{t('vendorDashboard.contactPhone')}</label>
+              <input required className="input" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">{t('vendorDashboard.pricingNotes')}</label>
+              <textarea className="input min-h-20" value={form.pricingNotes} onChange={(e) => setForm({ ...form, pricingNotes: e.target.value })} />
+            </div>
+            <button type="submit" disabled={busy} className="btn-primary w-full">
+              {busy ? t('vendorDashboard.saving') : editingId ? t('vendorDashboard.saveChanges') : t('vendorDashboard.submitForApproval')}
+            </button>
+          </motion.form>
+        )}
 
         <div className="space-y-8">
           <div>

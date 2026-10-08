@@ -6,6 +6,12 @@ const Event = require('../models/Event');
 // @desc  Onboard a vendor profile
 // @route POST /api/vendors
 const createVendor = asyncHandler(async (req, res) => {
+  const existingVendor = await Vendor.findOne({ user: req.user._id });
+  if (existingVendor) {
+    res.status(400);
+    throw new Error('You can only apply for one service profile.');
+  }
+
   const vendor = await Vendor.create({ ...req.body, user: req.user._id });
   res.status(201).json({ success: true, vendor });
 });

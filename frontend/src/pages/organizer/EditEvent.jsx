@@ -298,25 +298,33 @@ export default function EditEvent() {
             <p className="text-xs text-ink/50">{t('createEvent.noVendorsYet')}</p>
           ) : (
             <div className="mt-1 grid gap-2 sm:grid-cols-2">
-              {vendors.map((v) => (
-                <label
-                  key={v._id}
-                  className={`flex cursor-pointer items-center gap-2 rounded-xl border p-2.5 text-sm transition ${
-                    form.vendors.includes(v._id) ? 'border-magenta bg-vibe-gradient-soft' : 'border-ink/10'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.vendors.includes(v._id)}
-                    onChange={() => toggleVendor(v._id)}
-                    className="accent-magenta"
-                  />
-                  <span>
-                    <span className="font-medium text-ink">{v.name}</span>{' '}
-                    <span className="capitalize text-ink/50">— {t(`serviceTypes.${v.serviceType}`)}</span>
-                  </span>
-                </label>
-              ))}
+              {vendors.map((v) => {
+                const inv = invitations.find(i => i.vendor?._id === v._id);
+                const isPaid = inv?.status === 'paid';
+                const isDeclined = inv?.status === 'declined';
+                const isDisabled = isPaid || isDeclined;
+
+                return (
+                  <label
+                    key={v._id}
+                    className={`flex items-center gap-2 rounded-xl border p-2.5 text-sm transition ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'} ${
+                      form.vendors.includes(v._id) ? 'border-magenta bg-vibe-gradient-soft' : 'border-ink/10'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.vendors.includes(v._id)}
+                      onChange={() => !isDisabled && toggleVendor(v._id)}
+                      disabled={isDisabled}
+                      className="accent-magenta cursor-inherit"
+                    />
+                    <span>
+                      <span className="font-medium text-ink">{v.name}</span>{' '}
+                      <span className="capitalize text-ink/50">— {t(`serviceTypes.${v.serviceType}`)}</span>
+                    </span>
+                  </label>
+                );
+              })}
             </div>
           )}
         </div>

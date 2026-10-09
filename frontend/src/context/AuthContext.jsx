@@ -25,6 +25,20 @@ export function AuthProvider({ children }) {
     fetchMe();
   }, [fetchMe]);
 
+  useEffect(() => {
+    const socket = getSocket();
+    const handleSessionExpired = () => {
+      // If we receive this, another device logged in or password was reset
+      setUser(null);
+      socket.disconnect();
+      window.location.href = '/login?expired=true';
+    };
+    socket.on('session:expired', handleSessionExpired);
+    return () => {
+      socket.off('session:expired', handleSessionExpired);
+    };
+  }, []);
+
   const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
     setUser(data.user);

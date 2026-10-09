@@ -39,6 +39,12 @@ router.get(
     req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
     await req.user.save();
     
+    const io = req.app.get('io');
+    if (io) {
+      const { emitToUser } = require('../sockets/chatSocket');
+      emitToUser(io, req.user._id, 'session:expired', { message: 'You logged in from another device.' });
+    }
+
     generateToken(res, req.user._id, req.user.tokenVersion);
     res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
   }

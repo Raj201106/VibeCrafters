@@ -63,6 +63,13 @@ const login = asyncHandler(async (req, res) => {
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
 
+  // Tell all currently connected sockets for this user to log out
+  const io = req.app.get('io');
+  if (io) {
+    const { emitToUser } = require('../sockets/chatSocket');
+    emitToUser(io, user._id, 'session:expired', { message: 'You logged in from another device.' });
+  }
+
   generateToken(res, user._id, user.tokenVersion);
   res.json({ success: true, user: user.toSafeObject() });
 });
@@ -119,6 +126,13 @@ const changePassword = asyncHandler(async (req, res) => {
   user.passwordHash = newPassword;
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
+  
+  const io = req.app.get('io');
+  if (io) {
+    const { emitToUser } = require('../sockets/chatSocket');
+    emitToUser(io, user._id, 'session:expired', { message: 'Password was changed.' });
+  }
+
   res.json({ success: true, message: 'Password updated. You may need to log in again on other devices.' });
 });
 
@@ -167,6 +181,12 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.resetOtpExpires = undefined;
   user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
+
+  const io = req.app.get('io');
+  if (io) {
+    const { emitToUser } = require('../sockets/chatSocket');
+    emitToUser(io, user._id, 'session:expired', { message: 'Password was reset.' });
+  }
 
   res.json({ success: true, message: 'Password reset successful. Please log in.' });
 });

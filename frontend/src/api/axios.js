@@ -10,6 +10,16 @@ const api = axios.create({
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (err.response?.status === 401) {
+      // Force redirect to login if session expires, ignoring /auth/me or /login endpoints
+      if (
+        !window.location.pathname.startsWith('/login') &&
+        !err.config.url.includes('/auth/me') &&
+        !err.config.url.includes('/auth/login')
+      ) {
+        window.location.href = '/login?expired=true';
+      }
+    }
     const message = err.response?.data?.message || 'Something went wrong. Please try again.';
     return Promise.reject({ ...err, message });
   }

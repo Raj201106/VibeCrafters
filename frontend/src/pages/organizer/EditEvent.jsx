@@ -99,7 +99,7 @@ export default function EditEvent() {
         agenda: form.agenda.filter((a) => a.title),
       });
       toast.success(t('editEvent.detailsUpdatedToast'));
-      load();
+      navigate('/organizer');
     } catch (err) {
       toast.error(err.message);
     } finally {

@@ -114,7 +114,7 @@ export default function AttendeesList() {
         </div>
       </div>
 
-      <div className="mt-8 flex gap-2 border-b border-ink/8 pb-4">
+      <div className="mt-8 flex flex-wrap gap-2 border-b border-ink/8 pb-4">
         {['all', 'booked', 'checked-in', 'cancelled'].map((tab) => (
           <button
             key={tab}
@@ -136,7 +136,7 @@ export default function AttendeesList() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-6 overflow-hidden rounded-xl2 border border-ink/8 bg-white"
+          className="mt-6 overflow-x-auto rounded-xl2 border border-ink/8 bg-white"
         >
           <table className="w-full text-left text-sm">
             <thead className="bg-ink/[0.03] text-ink/50">

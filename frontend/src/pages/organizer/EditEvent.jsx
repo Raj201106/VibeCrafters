@@ -370,8 +370,8 @@ export default function EditEvent() {
           <label className="label">{t('createEvent.stepAgenda')}</label>
           <div className="space-y-2">
             {form.agenda.map((a, i) => (
-              <div key={i} className="flex gap-2">
-                <input className="input w-24" placeholder={t('createEvent.timePlaceholder')} value={a.time} onChange={(e) => {
+              <div key={i} className="flex flex-col sm:flex-row gap-2">
+                <input className="input w-full sm:w-32 shrink-0" placeholder={t('createEvent.timePlaceholder')} value={a.time} onChange={(e) => {
                   const agenda = [...form.agenda]; agenda[i].time = e.target.value; update({ agenda });
                 }} />
                 <input className="input flex-1" placeholder={t('createEvent.sessionTitlePlaceholder')} value={a.title} onChange={(e) => {
@@ -380,7 +380,7 @@ export default function EditEvent() {
                 <input className="input flex-1" placeholder={t('createEvent.speakerPlaceholder')} value={a.speaker} onChange={(e) => {
                   const agenda = [...form.agenda]; agenda[i].speaker = e.target.value; update({ agenda });
                 }} />
-                <button onClick={() => update({ agenda: form.agenda.filter((_, j) => j !== i) })} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500">
+                <button onClick={() => update({ agenda: form.agenda.filter((_, j) => j !== i) })} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500 flex justify-center w-full sm:w-auto shrink-0">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -401,30 +401,36 @@ export default function EditEvent() {
         <h2 className="font-display text-lg font-semibold text-ink">{t('editEvent.ticketTiersHeading')}</h2>
 
         {tiers.map((tier) => (
-          <div key={tier._id} className="flex items-center gap-2 rounded-xl2 border border-ink/10 p-3">
+          <div key={tier._id} className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-xl2 border border-ink/10 p-3">
             <input className="input flex-1" value={tier.name} onChange={(e) => updateTierField(tier._id, 'name', e.target.value)} />
-            <input type="number" className="input w-24" value={tier.price} onChange={(e) => updateTierField(tier._id, 'price', e.target.value)} />
-            <input type="number" className="input w-24" value={tier.quantity} onChange={(e) => updateTierField(tier._id, 'quantity', e.target.value)} />
-            <span className="w-20 shrink-0 text-xs text-ink/50">{t('editEvent.soldCount', { count: tier.quantitySold })}</span>
-            <button
-              onClick={() => saveTier(tier)}
-              disabled={savingTierId === tier._id}
-              className="rounded-xl border border-ink/10 px-3 py-2 text-xs font-semibold text-magenta hover:bg-ink/5"
-            >
-              {savingTierId === tier._id ? t('createEvent.saving') : t('editEvent.save')}
-            </button>
-            <button onClick={() => deleteTier(tier)} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500">
-              <Trash2 size={16} />
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input type="number" className="input flex-1 sm:w-24 shrink-0" value={tier.price} onChange={(e) => updateTierField(tier._id, 'price', e.target.value)} />
+              <input type="number" className="input flex-1 sm:w-24 shrink-0" value={tier.quantity} onChange={(e) => updateTierField(tier._id, 'quantity', e.target.value)} />
+              <span className="w-20 shrink-0 text-xs text-ink/50">{t('editEvent.soldCount', { count: tier.quantitySold })}</span>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => saveTier(tier)}
+                disabled={savingTierId === tier._id}
+                className="flex-1 sm:flex-none rounded-xl border border-ink/10 px-3 py-2 text-xs font-semibold text-magenta hover:bg-ink/5 text-center"
+              >
+                {savingTierId === tier._id ? t('createEvent.saving') : t('editEvent.save')}
+              </button>
+              <button onClick={() => deleteTier(tier)} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500 shrink-0 flex justify-center items-center">
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
         ))}
 
-        <div className="flex items-center gap-2 rounded-xl2 border border-dashed border-ink/20 p-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-xl2 border border-dashed border-ink/20 p-3">
           <input className="input flex-1" placeholder={t('editEvent.newTierNamePlaceholder')} value={newTier.name} onChange={(e) => setNewTier({ ...newTier, name: e.target.value })} />
-          <input type="number" className="input w-24" placeholder={t('editEvent.pricePlaceholder')} value={newTier.price} onChange={(e) => setNewTier({ ...newTier, price: e.target.value })} />
-          <input type="number" className="input w-24" placeholder={t('createEvent.qtyPlaceholder')} value={newTier.quantity} onChange={(e) => setNewTier({ ...newTier, quantity: e.target.value })} />
-          <button onClick={addTier} disabled={addingTier} className="btn-secondary !py-2 text-xs">
-            <Plus size={14} /> {t('editEvent.add')}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input type="number" className="input flex-1 sm:w-24 shrink-0" placeholder={t('editEvent.pricePlaceholder')} value={newTier.price} onChange={(e) => setNewTier({ ...newTier, price: e.target.value })} />
+            <input type="number" className="input flex-1 sm:w-24 shrink-0" placeholder={t('createEvent.qtyPlaceholder')} value={newTier.quantity} onChange={(e) => setNewTier({ ...newTier, quantity: e.target.value })} />
+          </div>
+          <button onClick={addTier} disabled={addingTier} className="btn-secondary w-full sm:w-auto !py-2 text-xs shrink-0 flex justify-center items-center">
+            <Plus size={14} className="mr-1" /> {t('editEvent.add')}
           </button>
         </div>
       </motion.div>

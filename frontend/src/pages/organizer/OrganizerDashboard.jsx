@@ -141,7 +141,7 @@ export default function OrganizerDashboard() {
             <p className="text-ink/60">{t('organizerDashboard.noEvents')}</p>
           </div>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-xl2 border border-ink/8 bg-white">
+          <div className="mt-4 overflow-x-auto rounded-xl2 border border-ink/8 bg-white">
             <table className="w-full text-left text-sm">
               <thead className="bg-ink/[0.03] text-ink/50">
                 <tr>
@@ -217,7 +217,7 @@ export default function OrganizerDashboard() {
         <div className="mt-16">
           <h2 className="font-display text-xl font-semibold text-ink">Recent Ticket Activity</h2>
           <p className="mt-1 mb-4 text-ink/60">A global view of all recent bookings and cancellations across your events.</p>
-          <div className="overflow-hidden rounded-xl2 border border-ink/8 bg-white">
+          <div className="overflow-x-auto rounded-xl2 border border-ink/8 bg-white">
             <table className="w-full text-left text-sm">
               <thead className="bg-ink/[0.03] text-ink/50">
                 <tr>

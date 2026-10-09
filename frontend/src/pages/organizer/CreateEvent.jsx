@@ -239,8 +239,8 @@ export default function CreateEvent() {
             {step === 2 && (
               <div className="space-y-3">
                 {form.agenda.map((a, i) => (
-                  <div key={i} className="flex gap-2">
-                    <input className="input w-24" placeholder={t('createEvent.timePlaceholder')} value={a.time} onChange={(e) => {
+                  <div key={i} className="flex flex-col sm:flex-row gap-2">
+                    <input className="input w-full sm:w-32 shrink-0" placeholder={t('createEvent.timePlaceholder')} value={a.time} onChange={(e) => {
                       const agenda = [...form.agenda]; agenda[i].time = e.target.value; update({ agenda });
                     }} />
                     <input className="input flex-1" placeholder={t('createEvent.sessionTitlePlaceholder')} value={a.title} onChange={(e) => {
@@ -249,7 +249,7 @@ export default function CreateEvent() {
                     <input className="input flex-1" placeholder={t('createEvent.speakerPlaceholder')} value={a.speaker} onChange={(e) => {
                       const agenda = [...form.agenda]; agenda[i].speaker = e.target.value; update({ agenda });
                     }} />
-                    <button onClick={() => update({ agenda: form.agenda.filter((_, j) => j !== i) })} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500">
+                    <button onClick={() => update({ agenda: form.agenda.filter((_, j) => j !== i) })} className="rounded-xl border border-ink/10 p-2.5 text-ink/40 hover:text-red-500 flex justify-center w-full sm:w-auto shrink-0">
                       <Trash2 size={16} />
                     </button>
                   </div>

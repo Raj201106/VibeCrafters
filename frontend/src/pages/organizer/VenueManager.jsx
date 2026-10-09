@@ -109,7 +109,7 @@ export default function VenueManager() {
         <ArrowLeft size={15} /> {t('venueManager.backToDashboard')}
       </Link>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">{t('venueManager.title')}</h1>
           <p className="mt-1 text-ink/60">{t('venueManager.subtitle')}</p>

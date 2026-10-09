@@ -106,13 +106,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">{t('adminDashboard.title')}</h1>
           <p className="mt-1 text-ink/60">{t('adminDashboard.subtitle')}</p>
         </div>
-        <Link to="/admin/users" className="btn-secondary">
-          <Users size={16} /> {t('adminDashboard.manageUsers')}
+        <Link to="/admin/users" className="btn-secondary w-full sm:w-auto justify-center">
+          <Users size={16} className="mr-1" /> {t('adminDashboard.manageUsers')}
         </Link>
       </div>
 
@@ -215,22 +215,22 @@ export default function AdminDashboard() {
         ) : (
           <div className="mt-4 space-y-2">
             {pendingEvents.map((ev) => (
-              <div key={ev._id} className="flex items-center justify-between rounded-xl2 border border-ink/8 p-4">
+              <div key={ev._id} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl2 border border-ink/8 p-4 gap-4">
                 <div>
                   <p className="text-sm font-semibold text-ink">{ev.title}</p>
                   <p className="text-xs capitalize text-ink/50">{t(`categories.${ev.category}`)} · {ev.organizer?.name}</p>
                   <Link to={`/events/${ev.slug}`} target="_blank" className="text-xs text-magenta hover:underline">Preview Event</Link>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => approveEvent(ev._id)}
-                    className="pill flex items-center gap-1 bg-ink/10 text-ink/60 transition hover:bg-vibe-gradient hover:text-white"
+                    className="flex-1 sm:flex-none justify-center pill flex items-center gap-1 bg-ink/10 text-ink/60 transition hover:bg-vibe-gradient hover:text-white"
                   >
                     <CheckCircle2 size={12} /> Approve & Publish
                   </button>
                   <button
                     onClick={() => rejectEvent(ev._id)}
-                    className="pill flex items-center gap-1 bg-red-50 text-red-600 transition hover:bg-red-500 hover:text-white"
+                    className="flex-1 sm:flex-none justify-center pill flex items-center gap-1 bg-red-50 text-red-600 transition hover:bg-red-500 hover:text-white"
                   >
                     <X size={12} /> Reject
                   </button>

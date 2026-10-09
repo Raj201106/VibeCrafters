@@ -95,12 +95,12 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">{t('organizerDashboard.title')}</h1>
           <p className="mt-1 text-ink/60">{t('organizerDashboard.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link to="/organizer/scan" className="btn-secondary">
             <ScanLine size={16} /> {t('organizerDashboard.scanTickets')}
           </Link>
@@ -142,7 +142,7 @@ export default function OrganizerDashboard() {
           </div>
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl2 border border-ink/8 bg-white">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
               <thead className="bg-ink/[0.03] text-ink/50">
                 <tr>
                   <th className="px-5 py-3 font-medium">{t('organizerDashboard.colEvent')}</th>
@@ -218,7 +218,7 @@ export default function OrganizerDashboard() {
           <h2 className="font-display text-xl font-semibold text-ink">Recent Ticket Activity</h2>
           <p className="mt-1 mb-4 text-ink/60">A global view of all recent bookings and cancellations across your events.</p>
           <div className="overflow-x-auto rounded-xl2 border border-ink/8 bg-white">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
               <thead className="bg-ink/[0.03] text-ink/50">
                 <tr>
                   <th className="px-5 py-3 font-medium">Attendee</th>

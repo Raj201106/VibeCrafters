@@ -138,7 +138,7 @@ export default function AttendeesList() {
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 overflow-x-auto rounded-xl2 border border-ink/8 bg-white"
         >
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
             <thead className="bg-ink/[0.03] text-ink/50">
               <tr>
                 <th className="px-5 py-3 font-medium">{t('attendeesList.colAttendee')}</th>

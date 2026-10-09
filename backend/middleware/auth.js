@@ -22,6 +22,17 @@ const protect = asyncHandler(async (req, res, next) => {
       res.status(401);
       throw new Error('User no longer exists or is deactivated.');
     }
+    
+    // Ensure the token version matches the user's current token version.
+    // If not, it means they logged in from another device and this session is invalidated.
+    const currentVersion = user.tokenVersion || 0;
+    const tokenVersion = decoded.version || 0;
+    
+    if (tokenVersion !== currentVersion) {
+      res.status(401);
+      throw new Error('Session expired. You logged in from another device.');
+    }
+    
     req.user = user;
     next();
   } catch (err) {
@@ -52,7 +63,13 @@ const optionalAuth = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
-    if (user && user.isActive) req.user = user;
+    
+    const currentVersion = user?.tokenVersion || 0;
+    const tokenVersion = decoded.version || 0;
+
+    if (user && user.isActive && tokenVersion === currentVersion) {
+      req.user = user;
+    }
   } catch (err) {
     // invalid/expired token — proceed as a guest rather than failing the request
   }

@@ -39,7 +39,7 @@ const register = asyncHandler(async (req, res) => {
     phone,
   });
 
-  generateToken(res, user._id);
+  generateToken(res, user._id, user.tokenVersion);
   sendWelcomeEmail(user).catch((e) => console.error('Welcome email failed:', e.message));
   res.status(201).json({ success: true, user: user.toSafeObject() });
 });
@@ -59,7 +59,11 @@ const login = asyncHandler(async (req, res) => {
     throw new Error('This account has been deactivated.');
   }
 
-  generateToken(res, user._id);
+  // Increment tokenVersion on every login to invalidate old sessions on other devices
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
+  await user.save();
+
+  generateToken(res, user._id, user.tokenVersion);
   res.json({ success: true, user: user.toSafeObject() });
 });
 
@@ -113,8 +117,9 @@ const changePassword = asyncHandler(async (req, res) => {
   }
 
   user.passwordHash = newPassword;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
-  res.json({ success: true, message: 'Password updated.' });
+  res.json({ success: true, message: 'Password updated. You may need to log in again on other devices.' });
 });
 
 // @desc  Request password reset OTP
@@ -160,6 +165,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.passwordHash = newPassword;
   user.resetOtp = undefined;
   user.resetOtpExpires = undefined;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
 
   res.json({ success: true, message: 'Password reset successful. Please log in.' });

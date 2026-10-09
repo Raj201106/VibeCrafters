@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     resetOtp: { type: String, select: false },
     resetOtpExpires: { type: Date, select: false },
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

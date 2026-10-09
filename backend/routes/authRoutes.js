@@ -34,8 +34,12 @@ router.get('/google', (req, res, next) => {
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL}/login?error=google` }),
-  (req, res) => {
-    generateToken(res, req.user._id);
+  async (req, res) => {
+    // Increment tokenVersion on every login to invalidate old sessions on other devices
+    req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
+    await req.user.save();
+    
+    generateToken(res, req.user._id, req.user.tokenVersion);
     res.redirect(`${process.env.CLIENT_URL}/auth/callback`);
   }
 );

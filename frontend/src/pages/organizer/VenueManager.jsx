@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import TiltCard from '../../components/TiltCard';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const emptyForm = { name: '', address: '', city: '', capacity: '', amenities: '', photos: [''] };
 
@@ -27,6 +28,7 @@ export default function VenueManager() {
   const [form, setForm] = useState(emptyForm);
   const [busy, setBusy] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [confirm, setConfirm] = useState({ isOpen: false, action: null, title: '', message: '', confirmText: 'Confirm' });
 
   const load = () => api.get('/venues').then(({ data }) => setVenues(data.venues));
   useEffect(load, []);
@@ -81,18 +83,25 @@ export default function VenueManager() {
     }
   };
 
-  const handleDelete = async (venue) => {
-    if (!confirm(t('venueManager.deleteConfirm', { name: venue.name }))) return;
-    setDeletingId(venue._id);
-    try {
-      await api.delete(`/venues/${venue._id}`);
-      toast.success(t('venueManager.venueDeleted'));
-      setVenues((prev) => prev.filter((v) => v._id !== venue._id));
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setDeletingId(null);
-    }
+  const handleDelete = (venue) => {
+    setConfirm({
+      isOpen: true,
+      title: 'Delete Venue',
+      message: t('venueManager.deleteConfirm', { name: venue.name }),
+      confirmText: 'Delete',
+      action: async () => {
+        setDeletingId(venue._id);
+        try {
+          await api.delete(`/venues/${venue._id}`);
+          toast.success(t('venueManager.venueDeleted'));
+          setVenues((prev) => prev.filter((v) => v._id !== venue._id));
+        } catch (err) {
+          toast.error(err.message);
+        } finally {
+          setDeletingId(null);
+        }
+      }
+    });
   };
 
   const updatePhoto = (i, value) => {
@@ -105,6 +114,14 @@ export default function VenueManager() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
+      <ConfirmModal
+        isOpen={confirm.isOpen}
+        onClose={() => setConfirm(c => ({ ...c, isOpen: false }))}
+        onConfirm={confirm.action}
+        title={confirm.title}
+        message={confirm.message}
+        confirmText={confirm.confirmText}
+      />
       <Link to="/organizer" className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/60 hover:text-ink">
         <ArrowLeft size={15} /> {t('venueManager.backToDashboard')}
       </Link>

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AnimatedCounter from '../../components/AnimatedCounter';
+import ConfirmModal from '../../components/ConfirmModal';
 import { dateLocale } from '../../i18n/dateLocale';
 
 const statusPill = {
@@ -29,6 +30,7 @@ export default function OrganizerDashboard() {
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [confirm, setConfirm] = useState({ isOpen: false, action: null, title: '', message: '', confirmText: 'Confirm' });
   const EVENTS_PAGE_SIZE = 20;
 
   const loadEventsPage = (targetPage, append) =>
@@ -62,26 +64,40 @@ export default function OrganizerDashboard() {
     }
   };
 
-  const removeDraft = async (event) => {
-    if (!confirm(t('organizerDashboard.deleteConfirm', { title: event.title }))) return;
-    try {
-      await api.delete(`/events/${event._id}`);
-      toast.success(t('organizerDashboard.deletedToast'));
-      load();
-    } catch (err) {
-      toast.error(err.message);
-    }
+  const removeDraft = (event) => {
+    setConfirm({
+      isOpen: true,
+      title: 'Delete Draft',
+      message: t('organizerDashboard.deleteConfirm', { title: event.title }),
+      confirmText: 'Delete',
+      action: async () => {
+        try {
+          await api.delete(`/events/${event._id}`);
+          toast.success(t('organizerDashboard.deletedToast'));
+          load();
+        } catch (err) {
+          toast.error(err.message);
+        }
+      }
+    });
   };
 
-  const cancelEvent = async (event) => {
-    if (!confirm(`Are you sure you want to CANCEL "${event.title}"? All booked tickets will be refunded automatically.`)) return;
-    try {
-      await api.patch(`/events/${event._id}/status`, { status: 'cancelled' });
-      toast.success('Event cancelled & refunds initiated');
-      load();
-    } catch (err) {
-      toast.error(err.message);
-    }
+  const cancelEvent = (event) => {
+    setConfirm({
+      isOpen: true,
+      title: 'Cancel Event',
+      message: `Are you sure you want to CANCEL "${event.title}"? All booked tickets will be refunded automatically.`,
+      confirmText: 'Cancel Event',
+      action: async () => {
+        try {
+          await api.patch(`/events/${event._id}/status`, { status: 'cancelled' });
+          toast.success('Event cancelled & refunds initiated');
+          load();
+        } catch (err) {
+          toast.error(err.message);
+        }
+      }
+    });
   };
 
   if (!kpis || !events) return <LoadingSpinner full />;
@@ -95,6 +111,14 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
+      <ConfirmModal
+        isOpen={confirm.isOpen}
+        onClose={() => setConfirm(c => ({ ...c, isOpen: false }))}
+        onConfirm={confirm.action}
+        title={confirm.title}
+        message={confirm.message}
+        confirmText={confirm.confirmText}
+      />
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">{t('organizerDashboard.title')}</h1>

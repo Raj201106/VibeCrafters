@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import VendorReviewCard from './VendorReviewCard';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const emptyAgenda = () => ({ time: '', title: '', speaker: '' });
 const emptyTier = () => ({ name: '', price: '', quantity: '' });
@@ -41,6 +42,7 @@ export default function EditEvent() {
   const [addingTier, setAddingTier] = useState(false);
   const [fileName, setFileName] = useState('');
   const [invitations, setInvitations] = useState([]);
+  const [confirm, setConfirm] = useState({ isOpen: false, action: null, title: '', message: '', confirmText: 'Confirm' });
 
   const load = () => {
     api.get(`/events/${slug}`)
@@ -146,18 +148,25 @@ export default function EditEvent() {
     }
   };
 
-  const deleteTier = async (tier) => {
+  const deleteTier = (tier) => {
     if (tier.quantitySold > 0) {
       return toast.error(t('editEvent.tierDeleteBlockedToast', { count: tier.quantitySold }));
     }
-    if (!confirm(t('editEvent.tierDeleteConfirm', { name: tier.name }))) return;
-    try {
-      await api.delete(`/events/${event._id}/ticket-types/${tier._id}`);
-      toast.success(t('editEvent.tierDeletedToast'));
-      load();
-    } catch (err) {
-      toast.error(err.message);
-    }
+    setConfirm({
+      isOpen: true,
+      title: 'Delete Ticket Tier',
+      message: t('editEvent.tierDeleteConfirm', { name: tier.name }),
+      confirmText: 'Delete',
+      action: async () => {
+        try {
+          await api.delete(`/events/${event._id}/ticket-types/${tier._id}`);
+          toast.success(t('editEvent.tierDeletedToast'));
+          load();
+        } catch (err) {
+          toast.error(err.message);
+        }
+      }
+    });
   };
 
   const addTier = async () => {
@@ -203,6 +212,14 @@ export default function EditEvent() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
+      <ConfirmModal
+        isOpen={confirm.isOpen}
+        onClose={() => setConfirm(c => ({ ...c, isOpen: false }))}
+        onConfirm={confirm.action}
+        title={confirm.title}
+        message={confirm.message}
+        confirmText={confirm.confirmText}
+      />
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-3xl font-semibold text-ink">{t('editEvent.title')}</h1>
